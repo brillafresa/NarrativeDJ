@@ -7,6 +7,7 @@ Summary of [research.md](research.md) Sections 3–4. See research.md on conflic
 | Layer | Technology |
 |-------|------------|
 | Platform | Android APK (Phase 1), Desktop later |
+| UI language | Korean default; English via `AppLocaleStore` + `values-en/` |
 | Music | In-app WebView → YouTube Music PWA |
 | Control | JS injection (play/pause, now-playing parse) |
 | AI | User Gemini/OpenAI API key on-device |
@@ -81,6 +82,7 @@ android/             Production Kotlin app → APK
 | 1 | APK, WebView PoC, cushion route verified |
 | 2 | Background freeze, ducking, space profiles |
 | 3 | B2B licensing, admin console |
+| 3.1 | Korean-first i18n, language setting, chat-style DJ input |
 
 ## Legal / risk (4.1–4.3)
 

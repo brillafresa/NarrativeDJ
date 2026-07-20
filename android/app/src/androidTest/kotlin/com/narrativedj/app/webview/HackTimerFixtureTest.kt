@@ -1,3 +1,7 @@
+/**
+ * Instrumentation harness: HackTimer install + callback on fixture page.
+ * Run: cd android && ./gradlew connectedDebugAndroidTest --tests *.HackTimerFixtureTest
+ */
 package com.narrativedj.app.webview
 
 import android.webkit.WebView
@@ -16,10 +20,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 class HackTimerFixtureTest {
 
     @Test
-    fun hackTimer_firesCallbackOnFixturePage() {
+    fun hackTimer_isInstalledAfterAssetInjection() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val latch = CountDownLatch(1)
-        val fired = AtomicBoolean(false)
+        val installed = AtomicBoolean(false)
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val webView = WebView(context)
@@ -28,24 +32,11 @@ class HackTimerFixtureTest {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     YtmAssetInjector.inject(webView, context) {
                         webView.evaluateJavascript(
-                            """
-                            (function(){
-                              if (!window.NarrativeDJHackTimer) return 'missing';
-                              var done = false;
-                              window.NarrativeDJHackTimer.setTimeout(function(){ done = true; }, 50);
-                              return 'scheduled';
-                            })();
-                            """.trimIndent(),
-                            null,
-                        )
-                        webView.postDelayed({
-                            webView.evaluateJavascript(
-                                "(function(){ return !!window.NarrativeDJHackTimer && window.NarrativeDJHackTimer.isInstalled(); })();",
-                            ) { installed ->
-                                if (installed == "true") fired.set(true)
-                                latch.countDown()
-                            }
-                        }, 200)
+                            "(function(){ return !!(window.NarrativeDJHackTimer && window.NarrativeDJHackTimer.isInstalled()); })();",
+                        ) { raw ->
+                            if (raw == "true") installed.set(true)
+                            latch.countDown()
+                        }
                     }
                 }
             }
@@ -53,6 +44,6 @@ class HackTimerFixtureTest {
         }
 
         assertTrue("HackTimer harness timed out", latch.await(15, TimeUnit.SECONDS))
-        assertEquals(true, fired.get())
+        assertEquals(true, installed.get())
     }
 }

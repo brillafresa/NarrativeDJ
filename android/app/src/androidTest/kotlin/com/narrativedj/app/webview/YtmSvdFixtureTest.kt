@@ -1,3 +1,8 @@
+/**
+ * Instrumentation harness: SVD selector resolution on local DOM fixtures.
+ * Fixtures: assets/www/fixtures/ytm-poc-fixture*.html
+ * Run: cd android && ./gradlew connectedDebugAndroidTest --tests *.YtmSvdFixtureTest
+ */
 package com.narrativedj.app.webview
 
 import android.webkit.WebView
@@ -16,11 +21,11 @@ import java.util.concurrent.TimeUnit
 class YtmSvdFixtureTest {
 
     @Test
-    fun svdOnCanonicalFixture_resolvesPocSelectors() {
+    fun svdOnCanonicalFixture_resolvesProductionSelectors() {
         runSvdHarness("file:///android_asset/www/fixtures/ytm-poc-fixture.html") { report ->
             assertTrue(report.healthy)
-            assertEquals("#poc-track-title", report.fields["title"]?.selector)
-            assertEquals("#poc-track-artist", report.fields["artist"]?.selector)
+            assertEquals("ytmusic-player-bar .title", report.fields["title"]?.selector)
+            assertEquals("ytmusic-player-bar .byline", report.fields["artist"]?.selector)
         }
     }
 

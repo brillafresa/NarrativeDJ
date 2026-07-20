@@ -1,5 +1,7 @@
 package com.narrativedj.app.dj
 
+import com.narrativedj.app.dj.DjAudioControlParser
+import com.narrativedj.app.locale.AppLanguage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -27,8 +29,11 @@ class DjAudioControlParserTest {
 
     @Test
     fun fallbackForStory_emptyStory_usesDefaultLine() {
-        val control = DjAudioControlParser.fallbackForStory("")
-        assertEquals("You're listening to NarrativeDJ.", control.script)
+        val control = DjAudioControlParser.fallbackForStory("", AppLanguage.KOREAN)
+        assertEquals("NarrativeDJ와 함께하고 계십니다.", control.script)
+
+        val english = DjAudioControlParser.fallbackForStory("", AppLanguage.ENGLISH)
+        assertEquals("You're listening to NarrativeDJ.", english.script)
     }
 
     @Test

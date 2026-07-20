@@ -28,9 +28,13 @@ import com.narrativedj.app.b2b.CommercialSpaceGuard
 import com.narrativedj.app.b2b.MusicProvider
 import com.narrativedj.app.b2b.MusicProviderFactory
 import com.narrativedj.app.b2b.MusicProviderMode
+import com.narrativedj.app.b2b.localizedLabel
+import com.narrativedj.app.b2b.localizedMessage
 import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.databinding.ActivityMainBinding
 import com.narrativedj.app.dj.DjPipeline
+import com.narrativedj.app.locale.AppLanguage
+import com.narrativedj.app.locale.AppLocaleStore
 import com.narrativedj.app.profile.SpaceProfile
 import com.narrativedj.app.profile.SpaceProfiles
 import com.narrativedj.app.scheduler.CushionRoutePlanner
@@ -42,7 +46,6 @@ import com.narrativedj.app.webview.YtmNowPlayingParser
 import com.narrativedj.app.webview.YtmSvdReportParser
 import com.narrativedj.app.webview.YtmWebViewClient
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -75,7 +78,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         keyStore = SecureKeyStore(this)
         b2bStore = B2bLicenseStore(this)
-        djPipeline = DjPipeline(keyStore, { binding.webView }, lifecycleScope)
+        djPipeline = DjPipeline(
+            context = applicationContext,
+            keyStore = keyStore,
+            webViewProvider = { binding.webView },
+            scope = lifecycleScope,
+            languageProvider = { AppLocaleStore.getLanguage(this) },
+        )
         tts = TextToSpeech(this, this)
         refreshMusicProvider()
 
@@ -108,10 +117,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             webChromeClient = WebChromeClient()
             webViewClient = YtmWebViewClient(this@MainActivity, ::onMusicPageReady)
             if (musicProvider.mode == MusicProviderMode.BYOK_WEBVIEW) {
-                updateStatus("Loading YouTube Music…")
+                updateStatus(getString(R.string.status_loading_ytm))
                 loadUrl(YTMUSIC_URL)
             } else {
-                updateStatus("B2B mode — ${musicProvider.playbackSourceLabel()}")
+                updateStatus(getString(R.string.status_b2b_mode, musicProvider.localizedLabel(this@MainActivity)))
             }
         }
     }
@@ -123,6 +132,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_language_settings -> {
+                showLanguageDialog()
+                true
+            }
             R.id.action_byok_settings -> {
                 showByokDialog()
                 true
@@ -141,8 +154,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            tts?.language = Locale.US
-            tts?.let { djPipeline.bindTts(it) }
+            tts?.let { engine ->
+                djPipeline.bindTts(engine)
+            }
         }
     }
 
@@ -175,13 +189,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 hasLicense,
             )
             if (!guard.allowed) {
-                updateStatus(guard.message)
+                updateStatus(guard.localizedMessage(this@MainActivity))
             }
         }
     }
 
     private fun setupProfileSpinner() {
-        val labels = SpaceProfiles.all.map { it.label }
+        val labels = SpaceProfiles.all.map { it.label(this) }
         binding.profileSpinner.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
@@ -197,7 +211,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun setupDjControls() {
         binding.btnDjSend.setOnClickListener {
             val story = binding.storyInput.text?.toString().orEmpty()
-            djPipeline.runStorySegment(story, selectedProfile.label, ::updateStatus)
+            djPipeline.runStorySegment(story, selectedProfile.label(this), ::updateStatus)
         }
         binding.btnPlanCushion.setOnClickListener {
             refreshCushionSuggestion(forceStatus = true)
@@ -245,9 +259,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Log.i(TAG, "Music page loaded: $url")
         binding.webView.evaluateJavascript("NarrativeDJYtm.runSvd();") { rawJson ->
             val report = YtmSvdReportParser.parse(unquoteJsString(rawJson))
-            val svdStatus = if (report?.healthy == true) "SVD OK" else "SVD degraded"
-            val providerNote = musicProvider.playbackSourceLabel()
-            updateStatus("$svdStatus — $providerNote — ${selectedProfile.label}")
+            val svdStatus = if (report?.healthy == true) {
+                getString(R.string.status_svd_ok)
+            } else {
+                getString(R.string.status_svd_degraded)
+            }
+            val providerNote = musicProvider.localizedLabel(this)
+            updateStatus(
+                getString(
+                    R.string.status_page_ready,
+                    svdStatus,
+                    providerNote,
+                    selectedProfile.label(this),
+                ),
+            )
         }
         mainHandler.removeCallbacks(nowPlayingPoller)
         mainHandler.post(nowPlayingPoller)
@@ -266,7 +291,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
                 Log.i(TAG, "Now playing: ${nowPlaying.displayLabel()}")
                 val cushionNote = lastCushionSummary?.let { " | $it" }.orEmpty()
-                updateStatus("[${selectedProfile.label}] ${nowPlaying.displayLabel()}$cushionNote")
+                updateStatus(
+                    getString(
+                        R.string.status_now_playing,
+                        selectedProfile.label(this),
+                        nowPlaying.displayLabel() + cushionNote,
+                    ),
+                )
             }
         }
     }
@@ -282,19 +313,40 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun refreshCushionSuggestion(forceStatus: Boolean = false) {
         val currentId = currentTrackId
         if (currentId == null) {
-            if (forceStatus) updateStatus("Play a track first to plan a cushion route.")
+            if (forceStatus) updateStatus(getString(R.string.status_play_track_first))
             return
         }
         val target = cushionPlanner.suggestTarget(currentId, selectedProfile) ?: run {
-            if (forceStatus) updateStatus("No profile-compatible target in catalog.")
+            if (forceStatus) updateStatus(getString(R.string.status_no_profile_target))
             lastCushionSummary = null
             return
         }
         val plan = cushionPlanner.planRoute(currentId, target.id, selectedProfile)
-        lastCushionSummary = plan?.displaySummary()
+        lastCushionSummary = plan?.localizedSummary(this)
         if (forceStatus) {
-            updateStatus(lastCushionSummary ?: "Could not plan cushion route.")
+            updateStatus(lastCushionSummary ?: getString(R.string.status_cushion_plan_failed))
         }
+    }
+
+    private fun showLanguageDialog() {
+        val options = arrayOf(
+            getString(R.string.language_korean),
+            getString(R.string.language_english),
+        )
+        val currentLanguage = AppLocaleStore.getLanguage(this)
+        val checkedItem = if (currentLanguage == AppLanguage.ENGLISH) 1 else 0
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.language_settings)
+            .setSingleChoiceItems(options, checkedItem) { dialog, which ->
+                val language = if (which == 1) AppLanguage.ENGLISH else AppLanguage.KOREAN
+                if (language != currentLanguage) {
+                    AppLocaleStore.setLanguage(this, language)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showByokDialog() {
@@ -338,7 +390,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             keyStore.clearApiKey(SecureKeyStore.Provider.OPENAI)
         }
         updateStatus(
-            if (djPipeline.isByokConfigured()) "API keys saved (encrypted)." else "API keys cleared.",
+            if (djPipeline.isByokConfigured()) {
+                getString(R.string.status_keys_saved)
+            } else {
+                getString(R.string.status_keys_cleared)
+            },
         )
     }
 
@@ -410,7 +466,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
                 refreshMusicProvider()
                 applyCommercialGuardStatus()
-                updateStatus("B2B settings saved — ${musicProvider.playbackSourceLabel()}")
+                updateStatus(
+                    getString(R.string.status_b2b_saved, musicProvider.localizedLabel(this)),
+                )
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

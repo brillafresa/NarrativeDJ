@@ -1,5 +1,6 @@
 package com.narrativedj.app.scheduler
 
+import com.narrativedj.app.R
 import com.narrativedj.app.profile.SpaceProfile
 import com.narrativedj.app.profile.SpaceProfiles
 import org.junit.Assert.assertEquals
@@ -38,7 +39,7 @@ class CushionRoutePlannerTest {
     fun planRoute_canonicalTwoBridgePath() {
         val wideProfile = SpaceProfile(
             id = "harness_wide",
-            label = "Harness wide",
+            labelResId = R.string.profile_cozy_brunch,
             bpmMin = 0,
             bpmMax = 999,
             energyMin = 0.0,

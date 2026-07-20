@@ -1,14 +1,20 @@
 package com.narrativedj.app.profile
 
+import android.content.Context
+import androidx.annotation.StringRes
+import com.narrativedj.app.R
+
 data class SpaceProfile(
     val id: String,
-    val label: String,
+    @StringRes val labelResId: Int,
     val bpmMin: Int,
     val bpmMax: Int,
     val energyMin: Double,
     val energyMax: Double,
     val mood: String,
 ) {
+    fun label(context: Context): String = context.getString(labelResId)
+
     fun matches(bpm: Double, energy: Double): Boolean {
         return bpm in bpmMin.toDouble()..bpmMax.toDouble() &&
             energy in energyMin..energyMax
@@ -18,7 +24,7 @@ data class SpaceProfile(
 object SpaceProfiles {
     val cozyBrunchCafe = SpaceProfile(
         id = "cozy_brunch_cafe",
-        label = "Cozy brunch café",
+        labelResId = R.string.profile_cozy_brunch,
         bpmMin = 80,
         bpmMax = 110,
         energyMin = 0.35,
@@ -28,7 +34,7 @@ object SpaceProfiles {
 
     val analogLpBar = SpaceProfile(
         id = "analog_lp_bar",
-        label = "Analog LP bar",
+        labelResId = R.string.profile_analog_lp,
         bpmMin = 70,
         bpmMax = 100,
         energyMin = 0.25,
@@ -38,7 +44,7 @@ object SpaceProfiles {
 
     val quietBookstore = SpaceProfile(
         id = "quiet_bookstore",
-        label = "Quiet bookstore",
+        labelResId = R.string.profile_quiet_bookstore,
         bpmMin = 60,
         bpmMax = 90,
         energyMin = 0.10,

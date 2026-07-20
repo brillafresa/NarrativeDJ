@@ -1,8 +1,7 @@
 package com.narrativedj.app.scheduler
 
-import com.narrativedj.app.profile.SpaceProfile
-import com.narrativedj.app.profile.SpaceProfileMatcher
-import com.narrativedj.app.profile.TrackMetrics
+import android.content.Context
+import com.narrativedj.app.R
 
 data class CatalogTrack(
     val id: String,
@@ -21,11 +20,11 @@ data class CushionPlan(
     val isDirect: Boolean,
     val dropped: Boolean,
 ) {
-    fun displaySummary(): String {
-        if (dropped) return "No cushion path to $targetTitle (DROP)"
-        if (isDirect) return "Direct → $targetTitle"
+    fun localizedSummary(context: Context): String {
+        if (dropped) return context.getString(R.string.cushion_drop, targetTitle)
+        if (isDirect) return context.getString(R.string.cushion_direct, targetTitle)
         val hops = bridgeIds.joinToString(" → ")
-        return "Cushion: $hops → $targetTitle"
+        return context.getString(R.string.cushion_route, hops, targetTitle)
     }
 }
 
@@ -51,16 +50,19 @@ class CushionRoutePlanner(
         return titleIndex[normalizeTitle(title)]
     }
 
-    fun profileCandidates(profile: SpaceProfile): List<CatalogTrack> {
-        val metrics = catalog.map { TrackMetrics(it.id, it.bpm, it.energy) }
-        val matchingIds = SpaceProfileMatcher.filterTracks(profile, metrics).map { it.id }.toSet()
+    fun profileCandidates(profile: com.narrativedj.app.profile.SpaceProfile): List<CatalogTrack> {
+        val metrics = catalog.map { com.narrativedj.app.profile.TrackMetrics(it.id, it.bpm, it.energy) }
+        val matchingIds = com.narrativedj.app.profile.SpaceProfileMatcher
+            .filterTracks(profile, metrics)
+            .map { it.id }
+            .toSet()
         return catalog.filter { it.id in matchingIds }
     }
 
     fun planRoute(
         currentTrackId: String?,
         targetTrackId: String,
-        profile: SpaceProfile,
+        profile: com.narrativedj.app.profile.SpaceProfile,
     ): CushionPlan? {
         val currentId = currentTrackId ?: return null
         val target = catalog.firstOrNull { it.id == targetTrackId } ?: return null
@@ -97,7 +99,10 @@ class CushionRoutePlanner(
         }
     }
 
-    fun suggestTarget(currentTrackId: String?, profile: SpaceProfile): CatalogTrack? {
+    fun suggestTarget(
+        currentTrackId: String?,
+        profile: com.narrativedj.app.profile.SpaceProfile,
+    ): CatalogTrack? {
         val currentId = currentTrackId ?: return profileCandidates(profile).firstOrNull()
         val candidates = profileCandidates(profile).filter { it.id != currentId }
         if (candidates.isEmpty()) return null
@@ -112,7 +117,7 @@ class CushionRoutePlanner(
         }
     }
 
-    private fun profileFilteredVectorDb(profile: SpaceProfile): Map<String, DoubleArray> {
+    private fun profileFilteredVectorDb(profile: com.narrativedj.app.profile.SpaceProfile): Map<String, DoubleArray> {
         val allowedIds = profileCandidates(profile).map { it.id }.toSet()
         return vectorDb.filterKeys { it in allowedIds }
     }

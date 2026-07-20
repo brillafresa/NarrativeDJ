@@ -39,6 +39,8 @@ Production **must not** reference paths named `mock_*`. Demo data uses neutral n
 | JVM parsers | `YtmNowPlayingParserTest`, `YtmSvdReportParserTest`, `YtmCspBypassTest` |
 | Manual checklist | [harness/docs/webview_poc_checklist.md](../harness/docs/webview_poc_checklist.md) |
 
+**SVD note:** canonical fixture validates **production selector priority** (`ytmusic-player-bar .title`); alt fixture validates fallback selectors.
+
 ## AI DJ / BYOK harness
 
 | Asset | Verify command |
@@ -46,10 +48,23 @@ Production **must not** reference paths named `mock_*`. Demo data uses neutral n
 | LLM JSON fixture | `harness/tests/mock_llm_response.json` |
 | Schema script | `python harness/scripts/test_llm_response_schema.py` |
 | Response extractor | `LlmResponseExtractorTest` |
-| Audio control parser | `DjAudioControlParserTest` |
+| Audio control parser | `DjAudioControlParserTest` (includes ko/en `fallbackForStory`) |
 | Encrypted keys | `SecureKeyStoreTest` (instrumentation) |
+| LLM prompts | `LlmPromptBuilder.build(story, profile, AppLanguage)` — Korean default |
 
 Production LLM/TTS uses on-device HTTP (Gemini/OpenAI) with keys in `SecureKeyStore` / `B2bLicenseStore`. No API keys in repo.
+
+**DJ ment flow:** story input → `DjPipeline.runStorySegment` → LLM JSON (`script`, ducking params) → OpenAI TTS or Android TTS with locale → Web Audio ducking via `audio-ducking.js`.
+
+## i18n harness
+
+| Asset | Verify command |
+|-------|----------------|
+| Default Korean strings | `android/app/src/main/res/values/strings.xml` |
+| English overlay | `android/app/src/main/res/values-en/strings.xml` |
+| Locale store | `AppLocaleStore` / `NarrativeDjApp` |
+| Fallback scripts | `DjAudioControlParserTest` — `AppLanguage.KOREAN` / `ENGLISH` |
+| Manual | Menu → **언어** → switch English → UI + TTS locale refresh |
 
 ## B2B / admin harness
 
@@ -73,9 +88,18 @@ Production LLM/TTS uses on-device HTTP (Gemini/OpenAI) with keys in `SecureKeySt
 Loaded at runtime into WebView (`YtmAssetInjector` order):
 
 1. `bridge.js` — NativeAudioBridge
-2. `hack-timer.js` — background timer defense
+2. `hack-timer.js` — Web Worker timer (native `setTimeout` fallback on fixture pages)
 3. `audio-ducking.js` — Web Audio GainNode ducking
 4. `ytm-svd.js` — selector self-validation
 5. `ytm-controller.js` — now-playing control
 
 Selector dictionary: `assets/www/selector_dictionary.json` (also validated by Python script).
+
+## BYOK readiness (production, not harness)
+
+| Component | Storage | Runtime |
+|-----------|---------|---------|
+| Gemini / OpenAI keys | `SecureKeyStore` (EncryptedSharedPreferences) | Menu → API 키 설정 |
+| B2B license | `B2bLicenseStore` | Menu → B2B / 음원 제공 |
+| YT Music session | In-app WebView user login | No server proxy |
+| TTS | OpenAI TTS (if OpenAI key) else Android TTS | Locale from `AppLocaleStore` |

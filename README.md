@@ -2,6 +2,8 @@
 
 Audio-first AI narrative radio DJ — client-centric BYOK Android app with cushion (bridge) song scheduling.
 
+**Default language:** Korean (English available in app settings).
+
 ## Repository structure
 
 ```

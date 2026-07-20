@@ -35,4 +35,4 @@ cd android && ./gradlew test
 | `mock_llm_response.json` | LLM response parser tests |
 | `mock_b2b_schedule.json` | Admin schedule planner tests |
 
-See [docs/harness-inventory.md](../docs/harness-inventory.md) for the full cross-language inventory.
+See [docs/harness-inventory.md](../docs/harness-inventory.md) for the full cross-language inventory (cushion, WebView/SVD, AI DJ/BYOK, i18n, B2B, release).

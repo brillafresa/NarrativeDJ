@@ -2,6 +2,7 @@ package com.narrativedj.app.byok.llm
 
 import com.narrativedj.app.dj.DjAudioControl
 import com.narrativedj.app.dj.DjAudioControlParser
+import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -14,9 +15,13 @@ class GeminiLlmClient(
     private val model: String = "gemini-1.5-flash",
 ) : LlmClient {
 
-    override suspend fun generateAudioControl(story: String, profileLabel: String): DjAudioControl {
+    override suspend fun generateAudioControl(
+        story: String,
+        profileLabel: String,
+        language: AppLanguage,
+    ): DjAudioControl {
         return withContext(Dispatchers.IO) {
-            val prompt = LlmPromptBuilder.build(story, profileLabel)
+            val prompt = LlmPromptBuilder.build(story, profileLabel, language)
             val endpoint = URL(
                 "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey",
             )
@@ -35,7 +40,7 @@ class GeminiLlmClient(
                 .getString("text")
             val jsonPayload = LlmResponseExtractor.extractJsonPayload(text)
             DjAudioControlParser.parse(jsonPayload)
-                ?: DjAudioControlParser.fallbackForStory(story)
+                ?: DjAudioControlParser.fallbackForStory(story, language)
         }
     }
 

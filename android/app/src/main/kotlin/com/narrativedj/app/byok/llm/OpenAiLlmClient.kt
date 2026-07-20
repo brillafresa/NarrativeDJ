@@ -2,6 +2,7 @@ package com.narrativedj.app.byok.llm
 
 import com.narrativedj.app.dj.DjAudioControl
 import com.narrativedj.app.dj.DjAudioControlParser
+import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -14,9 +15,13 @@ class OpenAiLlmClient(
     private val model: String = "gpt-4o-mini",
 ) : LlmClient {
 
-    override suspend fun generateAudioControl(story: String, profileLabel: String): DjAudioControl {
+    override suspend fun generateAudioControl(
+        story: String,
+        profileLabel: String,
+        language: AppLanguage,
+    ): DjAudioControl {
         return withContext(Dispatchers.IO) {
-            val prompt = LlmPromptBuilder.build(story, profileLabel)
+            val prompt = LlmPromptBuilder.build(story, profileLabel, language)
             val endpoint = URL("https://api.openai.com/v1/chat/completions")
             val body = JSONObject().apply {
                 put("model", model)
@@ -43,7 +48,7 @@ class OpenAiLlmClient(
                 .getString("content")
             val jsonPayload = LlmResponseExtractor.extractJsonPayload(text)
             DjAudioControlParser.parse(jsonPayload)
-                ?: DjAudioControlParser.fallbackForStory(story)
+                ?: DjAudioControlParser.fallbackForStory(story, language)
         }
     }
 

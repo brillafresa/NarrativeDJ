@@ -1,30 +1,37 @@
 package com.narrativedj.app.dj
 
+import android.content.Context
 import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.webkit.WebView
+import com.narrativedj.app.R
 import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.byok.llm.GeminiLlmClient
 import com.narrativedj.app.byok.llm.LlmClient
 import com.narrativedj.app.byok.llm.OpenAiLlmClient
 import com.narrativedj.app.byok.tts.OpenAiTtsClient
+import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 
 class DjPipeline(
+    private val context: Context,
     private val keyStore: SecureKeyStore,
     private val webViewProvider: () -> WebView?,
     private val scope: CoroutineScope,
+    private val languageProvider: () -> AppLanguage,
 ) {
     private var tts: TextToSpeech? = null
     private var mediaPlayer: MediaPlayer? = null
 
     fun bindTts(engine: TextToSpeech) {
         tts = engine
+        applyTtsLocale(engine)
         tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) = Unit
 
@@ -41,6 +48,14 @@ class DjPipeline(
         })
     }
 
+    fun applyTtsLocale(engine: TextToSpeech) {
+        val locale = when (languageProvider()) {
+            AppLanguage.KOREAN -> Locale.KOREAN
+            AppLanguage.ENGLISH -> Locale.US
+        }
+        engine.language = locale
+    }
+
     fun isByokConfigured(): Boolean {
         return keyStore.hasApiKey(SecureKeyStore.Provider.GEMINI) ||
             keyStore.hasApiKey(SecureKeyStore.Provider.OPENAI)
@@ -49,17 +64,18 @@ class DjPipeline(
     fun runStorySegment(story: String, profileLabel: String, onStatus: (String) -> Unit) {
         scope.launch {
             try {
-                onStatus("Generating DJ line…")
+                val language = languageProvider()
+                onStatus(context.getString(R.string.dj_generating))
                 val client = resolveLlmClient()
                 val control = if (client != null) {
-                    client.generateAudioControl(story, profileLabel)
+                    client.generateAudioControl(story, profileLabel, language)
                 } else {
-                    DjAudioControlParser.fallbackForStory(story)
+                    DjAudioControlParser.fallbackForStory(story, language)
                 }
-                onStatus("DJ: ${control.script}")
+                onStatus(context.getString(R.string.dj_line_prefix, control.script))
                 playSegment(control)
             } catch (e: Exception) {
-                onStatus("DJ error: ${e.message ?: "unknown"}")
+                onStatus(context.getString(R.string.dj_error, e.message ?: "unknown"))
             }
         }
     }
@@ -109,6 +125,7 @@ class DjPipeline(
 
     private suspend fun playAndroidTts(control: DjAudioControl) {
         withContext(Dispatchers.Main) {
+            applyTtsLocale(requireNotNull(tts))
             val utteranceId = "narrativedj-${System.currentTimeMillis()}"
             webViewProvider()?.evaluateJavascript(
                 "NarrativeDJ.duckForSpeech(${estimateSpeechMs(control.script)}, ${control.duckingVolume});",

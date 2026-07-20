@@ -1,5 +1,7 @@
 package com.narrativedj.app.dj
 
+import com.narrativedj.app.locale.AppLanguage
+
 data class DjAudioControl(
     val duckingVolume: Double,
     val rampInSeconds: Double,
@@ -30,17 +32,24 @@ object DjAudioControlParser {
         }
     }
 
-    fun fallbackForStory(story: String): DjAudioControl {
+    fun fallbackForStory(story: String, language: AppLanguage = AppLanguage.KOREAN): DjAudioControl {
         val trimmed = story.trim()
+        val script = if (trimmed.isEmpty()) {
+            when (language) {
+                AppLanguage.KOREAN -> "NarrativeDJ와 함께하고 계십니다."
+                AppLanguage.ENGLISH -> "You're listening to NarrativeDJ."
+            }
+        } else {
+            when (language) {
+                AppLanguage.KOREAN -> "청취자 사연: $trimmed"
+                AppLanguage.ENGLISH -> "A listener wrote in: $trimmed"
+            }
+        }
         return DjAudioControl(
             duckingVolume = DjAudioControl.DEFAULT_DUCKING_VOLUME,
             rampInSeconds = DjAudioControl.DEFAULT_RAMP_IN,
             rampOutSeconds = DjAudioControl.DEFAULT_RAMP_OUT,
-            script = if (trimmed.isEmpty()) {
-                "You're listening to NarrativeDJ."
-            } else {
-                "A listener wrote in: $trimmed"
-            },
+            script = script,
             ssml = null,
         )
     }

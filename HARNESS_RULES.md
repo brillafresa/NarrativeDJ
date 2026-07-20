@@ -21,7 +21,13 @@ python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
 ```
 
-Optional (device/emulator): `cd android && ./gradlew connectedAndroidTest`
+Optional (device/emulator): `cd android && ./gradlew connectedDebugAndroidTest`
+
+## i18n
+
+- Default UI language: **Korean** (`values/strings.xml`)
+- English: `values-en/strings.xml`, switch via app menu **언어 / Language**
+- DJ LLM prompts and Android TTS follow the selected locale
 
 Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 

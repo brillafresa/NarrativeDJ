@@ -3,6 +3,7 @@ package com.narrativedj.app.webview
 import android.content.Context
 import android.webkit.WebView
 
+/** Injects bridge, HackTimer, ducking, SVD, and YTM controller scripts into WebView. */
 object YtmAssetInjector {
     private val SCRIPT_ASSETS = listOf(
         "www/bridge.js",
