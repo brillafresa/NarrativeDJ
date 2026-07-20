@@ -1,5 +1,10 @@
 package com.narrativedj.app.scheduler
 
+/**
+ * JVM harness: Kotlin CushionMusicScheduler parity with Python reference.
+ * Fixture: src/test/resources/mock_tracks.json (sync via harness/scripts/sync_fixtures.py)
+ * Run: cd android && ./gradlew test --tests com.narrativedj.app.scheduler.CushionMusicSchedulerTest
+ */
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals

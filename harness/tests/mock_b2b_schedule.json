@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "locations": [
+    {
+      "location_id": "cafe-gangnam-01",
+      "name": "Gangnam Brunch Café",
+      "profile_id": "cozy_brunch_cafe",
+      "active_hours": "08:00-22:00",
+      "timezone": "Asia/Seoul"
+    },
+    {
+      "location_id": "lpbar-itaewon-02",
+      "name": "Itaewon LP Bar",
+      "profile_id": "analog_lp_bar",
+      "active_hours": "18:00-02:00",
+      "timezone": "Asia/Seoul"
+    },
+    {
+      "location_id": "bookstore-hongdae-03",
+      "name": "Hongdae Bookstore",
+      "profile_id": "quiet_bookstore",
+      "active_hours": "10:00-21:00",
+      "timezone": "Asia/Seoul"
+    }
+  ]
+}

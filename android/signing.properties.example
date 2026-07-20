@@ -1,0 +1,7 @@
+# Copy to android/signing.properties (gitignored) for release builds.
+# Never commit signing.properties or *.keystore to the repository.
+
+storeFile=../release.keystore
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=narrativedj
+keyPassword=YOUR_KEY_PASSWORD

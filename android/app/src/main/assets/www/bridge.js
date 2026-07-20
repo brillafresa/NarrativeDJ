@@ -1,6 +1,8 @@
-// NativeAudioBridge stub — injected into WebView after CSP bypass (Phase 1-C).
+// NativeAudioBridge — posts to Android JavascriptInterface when available.
 window.NativeAudioBridge = window.NativeAudioBridge || {
   postMessage: function (data) {
-    console.log("[NativeAudioBridge stub]", data);
+    if (window.NarrativeDJAndroid && window.NarrativeDJAndroid.postMessage) {
+      window.NarrativeDJAndroid.postMessage(String(data));
+    }
   },
 };

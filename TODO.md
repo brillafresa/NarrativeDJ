@@ -1,31 +1,14 @@
-# TODO — NarrativeDJ
+# Pre-push verification (Harness-First)
 
-**Current phase:** Phase 1 MVP (initial harness + Android scaffold)
+```bash
+pip install -r harness/requirements.txt
+python harness/scripts/sync_fixtures.py
+python harness/scripts/test_cushion_router.py
+python harness/scripts/test_selector_dictionary.py
+python harness/scripts/test_llm_response_schema.py
+python harness/scripts/test_b2b_schedule_schema.py
+python harness/scripts/verify_release_config.py
+cd android && ./gradlew test
+```
 
-## Completed (this session)
-
-- [x] `docs/research.md` Source of Truth saved in workspace
-- [x] Harness guidelines and project docs
-- [x] Python cushion algorithm harness + mock data + verification script
-- [x] Android Gradle scaffold (Kotlin, WebView, scheduler port)
-- [x] JUnit scheduler tests aligned with Python harness
-
-## Phase 1 — next steps
-
-- [ ] **1-A:** WebView YouTube Music login & playback PoC
-- [ ] **1-B:** JS injection selector SVD pipeline
-- [ ] **1-C:** CSP bypass `shouldInterceptRequest` full implementation
-- [ ] **1-D:** BYOK LLM/TTS + Web Audio ducking integration
-- [ ] **1-E:** Space profile mode UI
-
-## Phase 2
-
-- [ ] Background freeze defenses (Wake Lock, MediaSession, Web Worker timers)
-- [ ] Low-latency ducking polish
-- [ ] LP bar / café / bookstore baseline templates
-
-## Phase 3
-
-- [ ] B2B streaming API partnership path
-- [ ] Admin console for multi-location scheduling
-- [ ] Release APK signing & distribution
+See [HARNESS_RULES.md](HARNESS_RULES.md) and [docs/harness-inventory.md](docs/harness-inventory.md).

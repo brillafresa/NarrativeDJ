@@ -1,0 +1,21 @@
+{
+  "title": [
+    "ytmusic-player-bar .title",
+    ".title.ytmusic-player-bar-title",
+    "#poc-track-title",
+    ".ytmusic-player-bar .title"
+  ],
+  "artist": [
+    "ytmusic-player-bar .byline",
+    ".byline.ytmusic-player-bar-byline",
+    "#poc-track-artist",
+    ".ytmusic-player-bar .byline"
+  ],
+  "playButton": [
+    "ytmusic-player-bar #play-pause-button",
+    "tp-yt-paper-icon-button.play-pause-button",
+    "#poc-play-button",
+    "button[aria-label*='Pause']",
+    "button[aria-label*='Play']"
+  ]
+}

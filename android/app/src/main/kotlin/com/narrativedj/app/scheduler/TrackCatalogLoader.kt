@@ -1,0 +1,40 @@
+package com.narrativedj.app.scheduler
+
+import android.content.Context
+
+/**
+ * Loads bundled demo track catalog for MVP cushion routing.
+ * SSOT fixture: harness/tests/mock_tracks.json (sync content to assets/catalog/demo_tracks.json).
+ */
+object TrackCatalogLoader {
+    const val DEMO_CATALOG_ASSET = "catalog/demo_tracks.json"
+
+    fun load(context: Context, assetPath: String = DEMO_CATALOG_ASSET): List<CatalogTrack> {
+        val jsonText = context.assets.open(assetPath).bufferedReader().use { it.readText() }
+        return parse(jsonText)
+    }
+
+    fun parse(jsonText: String): List<CatalogTrack> {
+        val root = org.json.JSONObject(jsonText)
+        val tracks = root.getJSONArray("tracks")
+        val result = ArrayList<CatalogTrack>(tracks.length())
+        for (i in 0 until tracks.length()) {
+            val track = tracks.getJSONObject(i)
+            val embeddingJson = track.getJSONArray("embedding")
+            val embedding = DoubleArray(embeddingJson.length()) { idx ->
+                embeddingJson.getDouble(idx)
+            }
+            result.add(
+                CatalogTrack(
+                    id = track.getString("id"),
+                    title = track.getString("title"),
+                    bpm = track.getDouble("bpm"),
+                    energy = track.getDouble("energy"),
+                    valence = track.getDouble("valence"),
+                    embedding = embedding,
+                ),
+            )
+        }
+        return result
+    }
+}

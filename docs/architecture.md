@@ -52,6 +52,16 @@ Flow: user story → LLM (BYOK) → SSML + fade params → TTS (BYOK) → duck i
 ## Monorepo layout
 
 ```text
+harness/tests/       Mock JSON SSOT + Python verification scripts
+harness/src/           Python reference algorithms (not shipped)
+android/app/src/main/  Production Kotlin + runtime assets (no mock_* names)
+android/app/src/test/  JVM unit tests (fixtures synced via sync_fixtures.py)
+android/app/src/androidTest/  WebView instrumentation harness
+```
+
+Production demo data uses neutral asset names (`catalog/demo_tracks.json`, `admin/default_schedule.json`). See [harness-inventory.md](harness-inventory.md).
+
+```text
 docs/research.md     Source of Truth
 harness/             Python algorithm verification
 android/             Production Kotlin app → APK

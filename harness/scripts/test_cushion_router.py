@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Console harness for CushionMusicScheduler route verification."""
+"""
+Cushion (bridge) route verification harness.
+
+Purpose: Validate Python reference CushionMusicScheduler against canonical scenarios.
+Run: python harness/scripts/test_cushion_router.py
+Fixture SSOT: harness/tests/mock_tracks.json
+"""
 
 from __future__ import annotations
 

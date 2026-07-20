@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">NarrativeDJ</string>
+    <string name="byok_settings">BYOK API Keys</string>
+    <string name="b2b_settings">B2B / Music Provider</string>
+    <string name="admin_console_title">Admin Console</string>
+    <string name="admin_summary">Managing %1$d locations</string>
+    <string name="admin_summary_error">Could not load default schedule</string>
+    <string name="story_hint">Listener story…</string>
+    <string name="dj_send">DJ</string>
+    <string name="plan_cushion">Plan</string>
+    <string name="notification_playback_active">NarrativeDJ session active</string>
+    <string name="profile_label">Space profile</string>
+    <string name="save_keys">Save</string>
+    <string name="gemini_key_hint">Gemini API key</string>
+    <string name="openai_key_hint">OpenAI API key</string>
+    <string name="b2b_license_hint">B2B license key (b2b-…)</string>
+    <string name="b2b_partner_url_hint">Partner API base URL (optional)</string>
+    <string name="venue_personal">Personal venue</string>
+    <string name="venue_commercial">Commercial venue</string>
+    <string name="provider_byok">BYOK WebView (YouTube Music)</string>
+    <string name="provider_b2b">B2B Partner Stream</string>
 </resources>

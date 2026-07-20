@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NarrativeDJ Admin</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; background: #111; color: #eee; }
+    h1 { font-size: 1.2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #333; padding: 8px; text-align: left; font-size: 0.9rem; }
+    th { background: #222; }
+    .badge { padding: 2px 6px; border-radius: 4px; background: #334; }
+  </style>
+</head>
+<body>
+  <h1>NarrativeDJ Admin Console</h1>
+  <p>Multi-location schedule (Phase 3 scaffold)</p>
+  <div id="status">Loading schedule…</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Profile</th>
+        <th>Hours</th>
+        <th>Timezone</th>
+      </tr>
+    </thead>
+    <tbody id="scheduleRows"></tbody>
+  </table>
+  <script src="admin.js"></script>
+</body>
+</html>

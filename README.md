@@ -19,7 +19,12 @@ android/            Kotlin Android app (deployable APK)
 
 ```bash
 pip install -r harness/requirements.txt
+python harness/scripts/sync_fixtures.py
 python harness/scripts/test_cushion_router.py
+python harness/scripts/test_selector_dictionary.py
+python harness/scripts/test_llm_response_schema.py
+python harness/scripts/test_b2b_schedule_schema.py
+python harness/scripts/verify_release_config.py
 ```
 
 ## Android app
@@ -47,6 +52,14 @@ Install debug APK:
 ./gradlew installDebug
 ```
 
+Release APK (unsigned without local `signing.properties`):
+
+```bash
+./gradlew assembleRelease
+```
+
+See [docs/release.md](docs/release.md) for signing setup.
+
 ## Release signing
 
 Release keystore is **not** in the repo. Configure `signingConfigs` locally or via CI secrets before `assembleRelease`.
@@ -57,3 +70,5 @@ Release keystore is **not** in the repo. Configure `signingConfigs` locally or v
 - [Architecture](docs/architecture.md)
 - [Features](docs/features.md)
 - [Harness rules](HARNESS_RULES.md)
+- [Harness inventory](docs/harness-inventory.md)
+- [Release build](docs/release.md)

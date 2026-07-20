@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!-- Harness fixture: alternate DOM layout for SVD fallback selector tests. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YTM PoC Fixture (alt DOM)</title>
+</head>
+<body>
+  <!-- Alternate DOM layout to verify SVD fallback selector resolution. -->
+  <div id="poc-fixture" data-testid="ytm-poc-fixture-alt">
+    <div class="ytmusic-player-bar">
+      <span class="title">Hotel California</span>
+      <span class="byline">Eagles</span>
+      <button aria-label="Play">Play</button>
+    </div>
+    <span id="poc-is-playing" style="display:none">false</span>
+  </div>
+</body>
+</html>

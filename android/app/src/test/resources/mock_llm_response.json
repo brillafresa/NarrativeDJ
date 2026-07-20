@@ -1,0 +1,7 @@
+{
+  "ducking_volume": 0.18,
+  "ramp_duration": 0.35,
+  "ramp_out_duration": 0.55,
+  "script": "That request reminds me of a rainy afternoon and a warm cup of coffee. Here's something to match the mood.",
+  "ssml": "<speak>That request reminds me of a rainy afternoon.</speak>"
+}
