@@ -1,0 +1,34 @@
+# NarrativeDJ — Cursor AI Rules
+
+## Architecture A (mandatory)
+
+- Client-centric BYOK (Bring Your Own Key); no provider server for LLM/TTS or music streaming.
+- YouTube Music via in-app WebView + JS injection.
+- LLM/TTS: user's Gemini or OpenAI API key, consumed on-device.
+- Audio ducking via Web Audio API GainNode.
+
+## Context conflict priority
+
+1. Working source code (tests passing)
+2. `.cursorrules`
+3. `docs/research.md`
+4. `docs/architecture.md`, `docs/features.md`
+
+## Harness-First
+
+Before production changes, run or extend harness tests:
+
+```bash
+python harness/scripts/test_cushion_router.py
+cd android && ./gradlew test
+```
+
+## Language split
+
+- **Kotlin** (`android/`): production app, deployable APK.
+- **Python** (`harness/`): algorithm verification only; not shipped in the app.
+
+## Do not
+
+- Reference external Downloads paths for research; use `docs/research.md`.
+- Add server-side music streaming or API key storage on a backend.

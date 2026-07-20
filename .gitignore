@@ -1,0 +1,28 @@
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/captures/
+*.keystore
+!android/debug.keystore
+
+# Local toolchain (portable JDK/SDK)
+.tools/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# IDE
+.vscode/
+*.swp
+.DS_Store
+
+# OS
+Thumbs.db
