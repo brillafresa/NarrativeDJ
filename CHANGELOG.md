@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Added
+
+- **CI/CD harness:** GitHub Actions workflow `.github/workflows/harness-verify.yml` — Python harness, `./gradlew test`, and `connectedDebugAndroidTest` on API 34 emulator (mirrors `HARNESS_RULES.md` pre-push checklist)
+
 ## [0.6.0] — 2026-07-20
 
 ### Added

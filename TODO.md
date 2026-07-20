@@ -17,8 +17,9 @@
 - [ ] Live B2B partner API integration (replace mock stream fallback)
 - [ ] GPS-based commercial venue detection
 - [ ] Admin console write/edit schedules + Korean admin HTML
-- [ ] CI/CD release pipeline with signing secrets
-- [ ] Full `connectedAndroidTest` green on CI emulator matrix
+- [x] CI harness verification workflow (Python + JVM + instrumentation on API 34)
+- [ ] CI/CD release pipeline with signing secrets (release APK build job)
+- [ ] Full `connectedAndroidTest` green on CI emulator matrix (API 26–34)
 
 ## Pre-push verification (Harness-First)
 
