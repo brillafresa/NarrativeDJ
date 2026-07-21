@@ -63,6 +63,13 @@
                 android:text="@string/plan_cushion" />
 
             <Button
+                android:id="@+id/btnExecuteCushion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/execute_cushion" />
+
+            <Button
                 android:id="@+id/btnDjSend"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

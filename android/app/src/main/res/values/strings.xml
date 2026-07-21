@@ -11,6 +11,8 @@
     <string name="story_hint">사연을 들려주세요…</string>
     <string name="dj_send">DJ</string>
     <string name="plan_cushion">경로</string>
+    <string name="execute_cushion">재생</string>
+    <string name="status_cushion_playing">쿠션 재생 중: %1$s</string>
     <string name="notification_playback_active">NarrativeDJ 재생 중</string>
     <string name="profile_label">공간 프로필</string>
     <string name="save_keys">저장</string>

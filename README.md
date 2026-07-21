@@ -14,8 +14,28 @@ android/            Kotlin Android app (deployable APK)
 
 ## Prerequisites
 
-- **Android:** Android Studio Ladybug+ or JDK 17+, Android SDK 34
+- **Android:** [Android Studio](https://developer.android.com/studio) with Android SDK 34+ and an emulator AVD
 - **Python:** 3.11+ for harness (`pip install -r harness/requirements.txt`)
+
+Copy SDK path into Gradle (gitignored):
+
+```powershell
+Copy-Item android/local.properties.example android/local.properties
+# Edit sdk.dir to your Android Studio SDK, e.g.:
+# sdk.dir=C\:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
+```
+
+If your AVDs are not under `%USERPROFILE%\.android\avd` (e.g. moved to another drive), copy and edit:
+
+```powershell
+Copy-Item harness/config/emulator.local.json.example harness/config/emulator.local.json
+```
+
+CLI builds use Android Studio's bundled JDK:
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+```
 
 ## Python harness (algorithm verification)
 
@@ -39,14 +59,7 @@ cd android
 ./gradlew test
 ```
 
-**Local toolchain (no system JDK/Android Studio required):** portable JDK 17 and Android SDK can live under `.tools/`. On Windows, set `JAVA_HOME` to the junction path without `+` in the folder name:
-
-```powershell
-$env:JAVA_HOME = "E:\Users\likedy\Projects\NarrativeDJ\.tools\jdk-17-home"
-$env:ANDROID_HOME = "E:\Users\likedy\Projects\NarrativeDJ\.tools\android-sdk"
-```
-
-`android/local.properties` should point `sdk.dir` at the same SDK path.
+Default AVD: **Pixel_8** (`harness/config/emulator.json`). If AVDs live outside `%USERPROFILE%\.android\avd`, set `avd_home` in `harness/config/emulator.local.json`.
 
 Install debug APK:
 
@@ -62,13 +75,27 @@ Release APK (unsigned without local `signing.properties`):
 
 See [docs/release.md](docs/release.md) for signing setup.
 
+## Emulator (local debugging)
+
+Default AVD: **Pixel_8** (`harness/config/emulator.json`).
+
+```bash
+python harness/scripts/ensure_emulator.py
+python harness/scripts/run_instrumentation.py
+cd android && ./gradlew installDebug
+```
+
+If no device is connected, `ensure_emulator.py` runs `emulator -avd Pixel_8` and waits for boot before instrumentation or manual debugging.
+
 ## Release signing
 
 Release keystore is **not** in the repo. Configure `signingConfigs` locally or via CI secrets before `assembleRelease`.
 
 ## Documentation
 
-- [Research (SoT)](docs/research.md)
+- **[Project scope](docs/project-scope.md)** — what this repo implements (read first)
+- [Development plan](docs/development-plan.md) — MVP Phase A–E roadmap
+- [Research (full vision)](docs/research.md)
 - [Architecture](docs/architecture.md)
 - [Features](docs/features.md)
 - [Harness rules](HARNESS_RULES.md)

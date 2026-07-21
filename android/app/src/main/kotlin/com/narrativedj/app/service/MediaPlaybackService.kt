@@ -5,31 +5,12 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.PowerManager
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import com.narrativedj.app.MainActivity
 import com.narrativedj.app.R
-
-object PlaybackSessionState {
-    @Volatile
-    var mediaSessionActive: Boolean = false
-
-    @Volatile
-    var wakeLockHeld: Boolean = false
-
-    var transportHandler: TransportHandler? = null
-
-    interface TransportHandler {
-        fun onPlay()
-        fun onPause()
-    }
-
-    fun reset() {
-        mediaSessionActive = false
-        wakeLockHeld = false
-        transportHandler = null
-    }
-}
 
 class MediaPlaybackService : android.app.Service() {
 
@@ -42,14 +23,17 @@ class MediaPlaybackService : android.app.Service() {
         super.onCreate()
         acquireWakeLock()
         initMediaSession()
-        startForeground(NOTIFICATION_ID, buildNotification())
+        PlaybackSessionState.metadataListener = { refreshForegroundNotification() }
+        refreshForegroundNotification()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        refreshForegroundNotification()
         return START_STICKY
     }
 
     override fun onDestroy() {
+        PlaybackSessionState.metadataListener = null
         releaseWakeLock()
         mediaSession?.isActive = false
         mediaSession?.release()
@@ -69,15 +53,50 @@ class MediaPlaybackService : android.app.Service() {
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() {
                     PlaybackSessionState.transportHandler?.onPlay()
+                    updatePlaybackState(true)
                 }
 
                 override fun onPause() {
                     PlaybackSessionState.transportHandler?.onPause()
+                    updatePlaybackState(false)
                 }
             })
             isActive = true
         }
         PlaybackSessionState.mediaSessionActive = true
+        updatePlaybackState(PlaybackSessionState.isPlaying)
+    }
+
+    private fun updatePlaybackState(playing: Boolean) {
+        val state = if (playing) {
+            PlaybackStateCompat.STATE_PLAYING
+        } else {
+            PlaybackStateCompat.STATE_PAUSED
+        }
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setActions(
+                    PlaybackStateCompat.ACTION_PLAY or
+                        PlaybackStateCompat.ACTION_PAUSE,
+                )
+                .setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1f)
+                .build(),
+        )
+    }
+
+    private fun refreshForegroundNotification() {
+        startForeground(NOTIFICATION_ID, buildNotification())
+        updatePlaybackState(PlaybackSessionState.isPlaying)
+        val title = PlaybackSessionState.title
+        val artist = PlaybackSessionState.artist
+        if (!title.isNullOrBlank()) {
+            mediaSession?.setMetadata(
+                MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist ?: "")
+                    .build(),
+            )
+        }
     }
 
     private fun acquireWakeLock() {
@@ -105,9 +124,14 @@ class MediaPlaybackService : android.app.Service() {
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
+        val line = PlaybackMetadataFormatter.notificationLine(
+            PlaybackSessionState.title,
+            PlaybackSessionState.artist,
+            getString(R.string.notification_playback_active),
+        )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.notification_playback_active))
+            .setContentText(line)
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentIntent(launchIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)

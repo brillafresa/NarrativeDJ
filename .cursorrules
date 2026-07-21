@@ -10,9 +10,11 @@
 ## Context conflict priority
 
 1. Working source code (tests passing)
-2. `.cursorrules`
-3. `docs/research.md`
-4. `docs/architecture.md`, `docs/features.md`
+2. `docs/project-scope.md` (this repo's goal scope)
+3. `.cursorrules` and `HARNESS_RULES.md`
+4. `docs/development-plan.md`
+5. `docs/research.md` (full vision — not all features are in scope)
+6. `docs/architecture.md`, `docs/features.md`
 
 ## Harness-First
 
@@ -27,6 +29,15 @@ python harness/scripts/test_b2b_schedule_schema.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
 ```
+
+Emulator (local WebView/instrumentation debugging):
+
+```bash
+python harness/scripts/ensure_emulator.py
+python harness/scripts/run_instrumentation.py
+```
+
+Default AVD: **Pixel_8** (`harness/config/emulator.json`). If no emulator is running, start it via `ensure_emulator.py` before `installDebug` or `connectedDebugAndroidTest`.
 
 Inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 

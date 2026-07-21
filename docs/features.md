@@ -1,6 +1,7 @@
 # Features
 
-Summary of [research.md](research.md) Section 2. See research.md on conflict.
+> **Implemented scope:** [project-scope.md](project-scope.md).  
+> Summary of [research.md](research.md) Section 2. See project-scope on conflict.
 
 ## Cushion algorithm
 

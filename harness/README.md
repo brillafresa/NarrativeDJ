@@ -26,6 +26,21 @@ cd android && ./gradlew test
 | `test_b2b_schedule_schema.py` | Multi-location admin schedule fixture |
 | `verify_release_config.py` | Release signing scaffold present, no keystore in repo |
 | `sync_fixtures.py` | Copy `harness/tests/*.json` → `android/.../test/resources/` |
+| `ensure_emulator.py` | Start **Pixel_8** AVD if needed; wait for boot |
+| `run_instrumentation.py` | `ensure_emulator.py` + `./gradlew connectedDebugAndroidTest` |
+
+## Emulator (`harness/config/emulator.json`)
+
+Default local AVD: **Pixel_8**. Equivalent manual command: `emulator -avd Pixel_8`.
+
+If AVDs are stored outside `%USERPROFILE%\.android\avd`, copy `emulator.local.json.example` → `emulator.local.json` and set `avd_home`.
+
+```bash
+python harness/scripts/ensure_emulator.py
+python harness/scripts/run_instrumentation.py
+```
+
+Use `ensure_emulator.py --check-only` to validate SDK/AVD configuration without launching the emulator.
 
 ## Fixtures (`harness/tests/`)
 

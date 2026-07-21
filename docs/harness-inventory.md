@@ -29,13 +29,28 @@ Production **must not** reference paths named `mock_*`. Demo data uses neutral n
 
 **Canonical scenario:** 몽중인 → California Dreamin' → Hotel California → Sweet Child O' Mine (2 bridges).
 
+## Emulator harness (local debugging)
+
+| Asset | Verify command |
+|-------|----------------|
+| AVD config | `harness/config/emulator.json` — default **Pixel_8** |
+| Ensure running | `python harness/scripts/ensure_emulator.py` |
+| Instrumentation runner | `python harness/scripts/run_instrumentation.py` |
+| Manual start (equivalent) | `emulator -avd Pixel_8` |
+
+**Agent rule:** before WebView fixture tests, `installDebug`, or on-device debugging, run `ensure_emulator.py`. If `adb devices` shows no ready device, the script starts the configured AVD and waits for `sys.boot_completed=1`.
+
+SDK resolution order: `ANDROID_HOME` / `ANDROID_SDK_ROOT` → `harness/config/emulator.local.json` `sdk_dir` → OS default SDK (`AppData/Local/Android/Sdk`) → `android/local.properties` `sdk.dir`.
+
+AVD resolution order: `ANDROID_AVD_HOME` → `emulator.local.json` `avd_home` → `%USERPROFILE%\.android\avd`. If Studio moved AVDs to another drive (e.g. `E:\AndroidAVD\avd`), set `avd_home` in `emulator.local.json`.
+
 ## WebView / SVD harness
 
 | Asset | Verify command |
 |-------|----------------|
 | Selector dictionary | `python harness/scripts/test_selector_dictionary.py` |
 | DOM fixtures | `assets/www/fixtures/ytm-poc-fixture*.html` |
-| Instrumentation | `./gradlew connectedAndroidTest` → `YtmControllerFixtureTest`, `YtmSvdFixtureTest`, `HackTimerFixtureTest` |
+| Instrumentation | `python harness/scripts/run_instrumentation.py` → `YtmControllerFixtureTest`, `YtmSvdFixtureTest`, `HackTimerFixtureTest` |
 | JVM parsers | `YtmNowPlayingParserTest`, `YtmSvdReportParserTest`, `YtmCspBypassTest` |
 | Manual checklist | [harness/docs/webview_poc_checklist.md](../harness/docs/webview_poc_checklist.md) |
 

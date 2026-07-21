@@ -10,6 +10,7 @@ data class CatalogTrack(
     val energy: Double,
     val valence: Double,
     val embedding: DoubleArray,
+    val searchQuery: String? = null,
 )
 
 data class CushionPlan(

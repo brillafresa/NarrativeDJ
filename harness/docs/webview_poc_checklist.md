@@ -3,12 +3,22 @@
 Manual verification steps for YouTube Music login & playback PoC.
 Run automated harness first, then complete this checklist on a physical device or emulator.
 
+## Emulator setup (local)
+
+```bash
+python harness/scripts/ensure_emulator.py
+python harness/scripts/run_instrumentation.py
+```
+
+Default AVD: **Pixel_8** (`harness/config/emulator.json`). Manual equivalent: `emulator -avd Pixel_8`.
+
 ## Prerequisites
 
 ```bash
 pip install -r harness/requirements.txt
 python harness/scripts/test_cushion_router.py
 cd android && ./gradlew test
+python harness/scripts/ensure_emulator.py
 cd android && ./gradlew assembleDebug installDebug
 ```
 
@@ -16,7 +26,7 @@ cd android && ./gradlew assembleDebug installDebug
 
 | Harness | Command | Pass criteria |
 |---------|---------|---------------|
-| JS controller fixture | `./gradlew connectedAndroidTest` | `YtmControllerFixtureTest` green |
+| JS controller fixture | `python harness/scripts/run_instrumentation.py` | `YtmControllerFixtureTest` green |
 | Now-playing JSON parser | `./gradlew test` | `YtmNowPlayingParserTest` green |
 
 ## Manual PoC checklist
@@ -39,7 +49,17 @@ cd android && ./gradlew assembleDebug installDebug
 - [ ] Audio is audible from device speaker/headphones
 - [ ] Status bar updates with track title and artist (may take up to 5 s poll interval)
 
-### D. PoC instrumentation signals
+### D. Search / play API (Phase A)
+
+- [ ] `NarrativeDJYtm.searchAndPlay('California Dreamin\\'')` succeeds on fixture (instrumentation)
+- [ ] On live YTM: search from cushion execute plays audible track (manual)
+
+### E. Background (Phase D)
+
+- [ ] 5+ min background with screen off (audio continues)
+- [ ] See [background_qa_checklist.md](background_qa_checklist.md) for 30 min sign-off
+
+### F. PoC instrumentation signals
 
 - [ ] Logcat tag `NarrativeDJ` shows `Music page loaded`
 - [ ] Logcat shows `Now playing:` with non-empty title when a track plays

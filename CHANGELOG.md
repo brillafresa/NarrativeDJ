@@ -4,9 +4,32 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-07-21
+
 ### Added
 
-- **CI/CD harness:** GitHub Actions workflow `.github/workflows/harness-verify.yml` — Python harness, `./gradlew test`, and `connectedDebugAndroidTest` on API 34 emulator (mirrors `HARNESS_RULES.md` pre-push checklist)
+- **Project scope docs:** [docs/project-scope.md](docs/project-scope.md), [docs/development-plan.md](docs/development-plan.md) — personal BYOK MVP scope; B2B/Admin deferred
+- **Phase A:** `NarrativeDJYtm.searchAndPlay` / `playPause` in `ytm-controller.js`; fixture search/play instrumentation test
+- **Phase B:** `CushionPlaybackController`, catalog `search_query`, Execute cushion button, `mock_cushion_playback.json`
+- **Phase C:** OpenAI TTS via Web Audio `playSpeechBufferFromBase64`; LLM prompt track context; post-DJ cushion refresh
+- **Phase D:** MediaSession/notification now-playing metadata; `background_qa_checklist.md`
+- **Tests:** `CushionPlaybackControllerTest`, `PlaybackMetadataFormatterTest`, SSML strip test
+
+### Changed
+
+- `TODO.md` reorganized: Scaffold complete / In scope MVP / Deferred
+- Document cross-links: research.md scope notice, README, `.cursorrules`, architecture.md
+- Version code 5
+
+### Scope decision
+
+This release implements **personal BYOK Android MVP** only. B2B/Admin scaffolds remain frozen per [project-scope.md](docs/project-scope.md).
+
+### Previous Unreleased (merged)
+
+- **Emulator harness:** `ensure_emulator.py`, `run_instrumentation.py`, `emulator.local.json`
+- **SDK migration:** system Android Studio SDK; removed project `.tools/`
+- **CI/CD harness:** GitHub Actions `harness-verify.yml`
 
 ## [0.6.0] — 2026-07-20
 

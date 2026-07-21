@@ -37,6 +37,18 @@ class DjAudioControlParserTest {
     }
 
     @Test
+    fun spokenText_stripsSsmlTags() {
+        val control = DjAudioControl(
+            duckingVolume = 0.2,
+            rampInSeconds = 0.4,
+            rampOutSeconds = 0.6,
+            script = "fallback",
+            ssml = "<speak>Hello <break time=\"500ms\"/> world</speak>",
+        )
+        assertEquals("Hello world", DjAudioControlParser.spokenText(control))
+    }
+
+    @Test
     fun parse_invalidJson_returnsNull() {
         assertNull(DjAudioControlParser.parse("{bad"))
     }

@@ -11,6 +11,8 @@
     <string name="story_hint">Listener story…</string>
     <string name="dj_send">DJ</string>
     <string name="plan_cushion">Plan</string>
+    <string name="execute_cushion">Play</string>
+    <string name="status_cushion_playing">Playing cushion: %1$s</string>
     <string name="notification_playback_active">NarrativeDJ session active</string>
     <string name="profile_label">Space profile</string>
     <string name="save_keys">Save</string>

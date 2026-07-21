@@ -1,6 +1,7 @@
 # Architecture
 
-Summary of [research.md](research.md) Sections 3–4. See research.md on conflict.
+> **Implemented scope:** [project-scope.md](project-scope.md) — personal BYOK Android MVP only.  
+> Summary of [research.md](research.md) Sections 3–4. See project-scope on conflict.
 
 ## Architecture A — BYOK client
 
@@ -12,7 +13,7 @@ Summary of [research.md](research.md) Sections 3–4. See research.md on conflic
 | Control | JS injection (play/pause, now-playing parse) |
 | AI | User Gemini/OpenAI API key on-device |
 | Audio mix | Web Audio API GainNode ducking |
-| Keys | AES-256-GCM local storage (planned) |
+| Keys | EncryptedSharedPreferences (`SecureKeyStore`) |
 
 No provider server for streaming or AI inference billing.
 
@@ -77,15 +78,22 @@ android/             Production Kotlin app → APK
 
 ## Roadmap
 
-| Phase | Focus |
-|-------|--------|
-| 1 | APK, WebView PoC, cushion route verified |
-| 2 | Background freeze, ducking, space profiles |
-| 3 | B2B licensing, admin console |
-| 3.1 | Korean-first i18n, language setting, chat-style DJ input |
+**Active (MVP):** [development-plan.md](development-plan.md) Phase A–E.
+
+| Phase | Focus | Status |
+|-------|--------|--------|
+| A | Live YTM + search/play JS | In progress |
+| B | Cushion playback execution | Planned |
+| C | DJ radio loop | Planned |
+| D | Background + MediaSession metadata | Planned |
+| E | Release ready APK | Planned |
+
+**Scaffold complete (research phases 1–3.1):** WebView, SVD, BYOK, profiles, i18n, B2B/Admin UI shells.
+
+**Deferred (out of MVP scope):** B2B streaming, admin CRUD, GPS guard, Desktop — see [project-scope.md](project-scope.md).
 
 ## Legal / risk (4.1–4.3)
 
 - Client proxy: no server-side music copy
-- Commercial space: GPS guard + B2B license path
+- Commercial space: manual venue toggle + B2B scaffold (**frozen**); GPS deferred per [project-scope.md](project-scope.md)
 - YT Music ToS: side-load / personal use MVP; B2B partner APIs in Phase 3

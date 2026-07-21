@@ -21,7 +21,14 @@ python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
 ```
 
-Optional (device/emulator): `cd android && ./gradlew connectedDebugAndroidTest`
+Optional (device/emulator):
+
+```bash
+python harness/scripts/ensure_emulator.py
+python harness/scripts/run_instrumentation.py
+```
+
+Local default AVD: **Pixel_8** (`harness/config/emulator.json`). If no device is connected, `ensure_emulator.py` starts `emulator -avd Pixel_8` and waits for boot. Agents and developers should use this harness before `installDebug` or WebView instrumentation debugging.
 
 ## i18n
 
@@ -37,6 +44,10 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 |------|------|
 | `harness/tests/` | **SSOT** for mock JSON fixtures |
 | `harness/scripts/` | Python verification (not app runtime) |
+| `harness/config/emulator.json` | Local emulator AVD name and boot settings |
+| `harness/config/emulator.local.json` | Machine-specific SDK/AVD paths (gitignored) |
+| `docs/project-scope.md` | **Repository goal scope** (read before research.md tasks) |
+| `docs/development-plan.md` | MVP Phase A–E execution plan |
 | `harness/src/` | Python reference algorithms |
 | `android/app/src/main/` | Production Kotlin + runtime assets |
 | `android/app/src/test/` | JVM unit tests (synced fixtures) |

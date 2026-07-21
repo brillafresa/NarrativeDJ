@@ -10,8 +10,8 @@ android/captures/
 *.keystore
 !android/debug.keystore
 
-# Local toolchain (portable JDK/SDK)
-.tools/
+# Local Android/emulator overrides (machine-specific paths)
+harness/config/emulator.local.json
 
 # Python
 __pycache__/

@@ -122,6 +122,7 @@
         source.connect(speechGain);
         source.onended = function () {
           window.NarrativeDJ.restore(rampOut || rampOutSec);
+          notifyBridge("speech_ended", { duration: buffer.duration });
         };
         source.start(0);
         notifyBridge("speech_started", { duration: buffer.duration });
@@ -132,6 +133,14 @@
         window.NarrativeDJ.restore(rampOut || rampOutSec);
         return false;
       });
+  };
+
+  window.NarrativeDJ.playSpeechBufferFromBase64 = function (base64, rampIn, rampOut) {
+    if (!base64) return Promise.resolve(false);
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return window.NarrativeDJ.playSpeechBuffer(bytes.buffer, rampIn, rampOut);
   };
 
   window.NarrativeDJ.isGraphReady = function () {

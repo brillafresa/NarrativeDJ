@@ -1,5 +1,9 @@
 # AI 내러티브 DJ 서비스 — 사전 컨설팅 및 아키텍처 설계 보고서
 
+> **Scope notice:** This document describes the **full product vision**.
+> The **implemented scope of this repository** is defined in [project-scope.md](project-scope.md).
+> Do not treat every feature listed here as a pending task.
+
 > **Source of Truth** for the NarrativeDJ project.  
 > Derived from Gemini research (user-provided, 2026-07-20).  
 > Do not reference external Downloads paths.

@@ -1,0 +1,12 @@
+{
+  "canonical_route": {
+    "current_id": "mongjungin",
+    "target_id": "sweet_child",
+    "bridge_ids": ["california_dreamin", "hotel_california"],
+    "play_order": [
+      { "id": "california_dreamin", "search_query": "California Dreamin'" },
+      { "id": "hotel_california", "search_query": "Hotel California Eagles" },
+      { "id": "sweet_child", "search_query": "Sweet Child O' Mine" }
+    ]
+  }
+}

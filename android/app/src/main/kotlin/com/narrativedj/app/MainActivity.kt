@@ -37,6 +37,8 @@ import com.narrativedj.app.locale.AppLanguage
 import com.narrativedj.app.locale.AppLocaleStore
 import com.narrativedj.app.profile.SpaceProfile
 import com.narrativedj.app.profile.SpaceProfiles
+import com.narrativedj.app.scheduler.CushionPlaybackController
+import com.narrativedj.app.scheduler.CushionPlan
 import com.narrativedj.app.scheduler.CushionRoutePlanner
 import com.narrativedj.app.scheduler.TrackCatalogLoader
 import com.narrativedj.app.service.MediaPlaybackService
@@ -54,9 +56,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var b2bStore: B2bLicenseStore
     private lateinit var djPipeline: DjPipeline
     private lateinit var cushionPlanner: CushionRoutePlanner
+    private lateinit var trackCatalog: List<com.narrativedj.app.scheduler.CatalogTrack>
+    private lateinit var cushionPlayback: CushionPlaybackController
     private lateinit var musicProvider: MusicProvider
     private var tts: TextToSpeech? = null
     private var selectedProfile: SpaceProfile = SpaceProfiles.cozyBrunchCafe
+    private var lastCushionPlan: CushionPlan? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var musicPageReady = false
@@ -88,8 +93,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
         refreshMusicProvider()
 
-        val catalog = TrackCatalogLoader.load(this)
-        val vectorDb = catalog.associate { track ->
+        trackCatalog = TrackCatalogLoader.load(this)
+        val vectorDb = trackCatalog.associate { track ->
             track.id to com.narrativedj.app.scheduler.CushionMusicScheduler.trackToVector(
                 track.bpm,
                 track.energy,
@@ -99,8 +104,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         cushionPlanner = CushionRoutePlanner(
             com.narrativedj.app.scheduler.CushionMusicScheduler(vectorDb),
-            catalog,
+            trackCatalog,
         )
+        cushionPlayback = CushionPlaybackController(
+            catalog = trackCatalog,
+            webView = binding.webView,
+            handler = mainHandler,
+        )
+        djPipeline.setOnSegmentCompleteListener { refreshCushionSuggestion(forceStatus = true) }
 
         setupProfileSpinner()
         setupDjControls()
@@ -163,6 +174,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onDestroy() {
         mainHandler.removeCallbacks(nowPlayingPoller)
         PlaybackSessionState.transportHandler = null
+        PlaybackSessionState.reset()
+        stopService(Intent(this, MediaPlaybackService::class.java))
         djPipeline.shutdown()
         tts?.shutdown()
         super.onDestroy()
@@ -211,10 +224,21 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun setupDjControls() {
         binding.btnDjSend.setOnClickListener {
             val story = binding.storyInput.text?.toString().orEmpty()
-            djPipeline.runStorySegment(story, selectedProfile.label(this), ::updateStatus)
+            val targetTitle = lastCushionPlan?.targetTitle
+            val currentTitle = trackCatalog.firstOrNull { it.id == currentTrackId }?.title
+            djPipeline.runStorySegment(
+                story = story,
+                profileLabel = selectedProfile.label(this),
+                currentTrackTitle = currentTitle,
+                targetTrackTitle = targetTitle,
+                onStatus = ::updateStatus,
+            )
         }
         binding.btnPlanCushion.setOnClickListener {
             refreshCushionSuggestion(forceStatus = true)
+        }
+        binding.btnExecuteCushion.setOnClickListener {
+            executeCushionPlan()
         }
         binding.storyInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -229,17 +253,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun setupPlaybackTransport() {
         PlaybackSessionState.transportHandler = object : PlaybackSessionState.TransportHandler {
             override fun onPlay() {
-                binding.webView.evaluateJavascript(
-                    "document.querySelector('button[aria-label*=Play]')?.click();",
-                    null,
-                )
+                binding.webView.evaluateJavascript("NarrativeDJYtm.playPause(true);", null)
             }
 
             override fun onPause() {
-                binding.webView.evaluateJavascript(
-                    "document.querySelector('button[aria-label*=Pause]')?.click();",
-                    null,
-                )
+                binding.webView.evaluateJavascript("NarrativeDJYtm.playPause(false);", null)
             }
         }
     }
@@ -290,6 +308,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     logB2bStreamIfApplicable(resolvedId)
                 }
                 Log.i(TAG, "Now playing: ${nowPlaying.displayLabel()}")
+                PlaybackSessionState.updateNowPlaying(
+                    nowPlaying.title,
+                    nowPlaying.artist,
+                    nowPlaying.isPlaying,
+                )
                 val cushionNote = lastCushionSummary?.let { " | $it" }.orEmpty()
                 updateStatus(
                     getString(
@@ -322,6 +345,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             return
         }
         val plan = cushionPlanner.planRoute(currentId, target.id, selectedProfile)
+        lastCushionPlan = plan
         lastCushionSummary = plan?.localizedSummary(this)
         if (forceStatus) {
             updateStatus(lastCushionSummary ?: getString(R.string.status_cushion_plan_failed))
@@ -474,7 +498,36 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .show()
     }
 
-    private fun onBridgeMessage(@Suppress("UNUSED_PARAMETER") data: String) = Unit
+    private fun executeCushionPlan() {
+        val plan = lastCushionPlan
+        if (plan == null || plan.dropped) {
+            refreshCushionSuggestion(forceStatus = true)
+            if (lastCushionPlan == null || lastCushionPlan?.dropped == true) {
+                updateStatus(getString(R.string.status_cushion_plan_failed))
+            }
+            return
+        }
+        updateStatus(getString(R.string.status_cushion_playing, plan.localizedSummary(this)))
+        cushionPlayback.playPlan(
+            plan = plan,
+            onStep = { _, query ->
+                updateStatus(getString(R.string.status_cushion_playing, query))
+            },
+            onComplete = {
+                currentTrackId = plan.targetTrackId
+                refreshCushionSuggestion(forceStatus = true)
+            },
+        )
+    }
+
+    private fun onBridgeMessage(data: String) {
+        try {
+            val json = org.json.JSONObject(data)
+            djPipeline.onBridgeEvent(json.optString("event"))
+        } catch (_: Exception) {
+            Unit
+        }
+    }
 
     private fun updateStatus(message: String) {
         binding.statusText.text = message

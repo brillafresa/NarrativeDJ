@@ -32,6 +32,7 @@ object TrackCatalogLoader {
                     energy = track.getDouble("energy"),
                     valence = track.getDouble("valence"),
                     embedding = embedding,
+                    searchQuery = track.optString("search_query").takeIf { it.isNotBlank() },
                 ),
             )
         }

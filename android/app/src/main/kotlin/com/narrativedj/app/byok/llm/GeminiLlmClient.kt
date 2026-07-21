@@ -15,13 +15,9 @@ class GeminiLlmClient(
     private val model: String = "gemini-1.5-flash",
 ) : LlmClient {
 
-    override suspend fun generateAudioControl(
-        story: String,
-        profileLabel: String,
-        language: AppLanguage,
-    ): DjAudioControl {
+    override suspend fun generateAudioControl(context: DjStoryContext): DjAudioControl {
         return withContext(Dispatchers.IO) {
-            val prompt = LlmPromptBuilder.build(story, profileLabel, language)
+            val prompt = LlmPromptBuilder.build(context)
             val endpoint = URL(
                 "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey",
             )
@@ -40,7 +36,7 @@ class GeminiLlmClient(
                 .getString("text")
             val jsonPayload = LlmResponseExtractor.extractJsonPayload(text)
             DjAudioControlParser.parse(jsonPayload)
-                ?: DjAudioControlParser.fallbackForStory(story, language)
+                ?: DjAudioControlParser.fallbackForStory(context.story, context.language)
         }
     }
 

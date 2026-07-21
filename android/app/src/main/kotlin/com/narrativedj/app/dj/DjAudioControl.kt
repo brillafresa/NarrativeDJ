@@ -17,6 +17,13 @@ data class DjAudioControl(
 }
 
 object DjAudioControlParser {
+    private val SSML_TAG = Regex("<[^>]+>")
+
+    fun spokenText(control: DjAudioControl): String {
+        val raw = control.ssml?.takeIf { it.isNotBlank() } ?: control.script
+        return raw.replace(SSML_TAG, " ").replace(Regex("\\s+"), " ").trim()
+    }
+
     fun parse(json: String): DjAudioControl? {
         return try {
             val root = org.json.JSONObject(json)

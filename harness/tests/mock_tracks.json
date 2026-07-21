@@ -3,6 +3,7 @@
     {
       "id": "mongjungin",
       "title": "몽중인",
+      "search_query": "몽중인",
       "bpm": 72,
       "energy": 0.25,
       "valence": 0.35,
@@ -22,6 +23,7 @@
     {
       "id": "california_dreamin",
       "title": "California Dreamin'",
+      "search_query": "California Dreamin'",
       "bpm": 85,
       "energy": 0.33,
       "valence": 0.38,
@@ -41,6 +43,7 @@
     {
       "id": "hotel_california",
       "title": "Hotel California",
+      "search_query": "Hotel California Eagles",
       "bpm": 145,
       "energy": 0.74,
       "valence": 0.6,
@@ -60,6 +63,7 @@
     {
       "id": "sweet_child",
       "title": "Sweet Child O' Mine",
+      "search_query": "Sweet Child O' Mine Guns N Roses",
       "bpm": 125,
       "energy": 0.88,
       "valence": 0.75,

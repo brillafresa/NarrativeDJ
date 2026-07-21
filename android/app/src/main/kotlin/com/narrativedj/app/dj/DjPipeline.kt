@@ -1,12 +1,13 @@
 package com.narrativedj.app.dj
 
 import android.content.Context
-import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Base64
 import android.webkit.WebView
 import com.narrativedj.app.R
 import com.narrativedj.app.byok.SecureKeyStore
+import com.narrativedj.app.byok.llm.DjStoryContext
 import com.narrativedj.app.byok.llm.GeminiLlmClient
 import com.narrativedj.app.byok.llm.LlmClient
 import com.narrativedj.app.byok.llm.OpenAiLlmClient
@@ -16,7 +17,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.util.Locale
 
 class DjPipeline(
@@ -27,7 +27,8 @@ class DjPipeline(
     private val languageProvider: () -> AppLanguage,
 ) {
     private var tts: TextToSpeech? = null
-    private var mediaPlayer: MediaPlayer? = null
+    private var segmentCompleteListener: (() -> Unit)? = null
+    private var awaitingWebSpeechEnd = false
 
     fun bindTts(engine: TextToSpeech) {
         tts = engine
@@ -38,14 +39,27 @@ class DjPipeline(
             override fun onDone(utteranceId: String?) {
                 if (utteranceId?.startsWith("narrativedj") == true) {
                     restoreDucking(DEFAULT_RAMP_OUT)
+                    notifySegmentComplete()
                 }
             }
 
             @Deprecated("Deprecated in API")
             override fun onError(utteranceId: String?) {
                 restoreDucking(DEFAULT_RAMP_OUT)
+                notifySegmentComplete()
             }
         })
+    }
+
+    fun setOnSegmentCompleteListener(listener: (() -> Unit)?) {
+        segmentCompleteListener = listener
+    }
+
+    fun onBridgeEvent(event: String) {
+        if (event == "speech_ended" && awaitingWebSpeechEnd) {
+            awaitingWebSpeechEnd = false
+            notifySegmentComplete()
+        }
     }
 
     fun applyTtsLocale(engine: TextToSpeech) {
@@ -61,14 +75,27 @@ class DjPipeline(
             keyStore.hasApiKey(SecureKeyStore.Provider.OPENAI)
     }
 
-    fun runStorySegment(story: String, profileLabel: String, onStatus: (String) -> Unit) {
+    fun runStorySegment(
+        story: String,
+        profileLabel: String,
+        currentTrackTitle: String? = null,
+        targetTrackTitle: String? = null,
+        onStatus: (String) -> Unit,
+    ) {
         scope.launch {
             try {
                 val language = languageProvider()
                 onStatus(context.getString(R.string.dj_generating))
+                val djContext = DjStoryContext(
+                    story = story,
+                    profileLabel = profileLabel,
+                    language = language,
+                    currentTrackTitle = currentTrackTitle,
+                    targetTrackTitle = targetTrackTitle,
+                )
                 val client = resolveLlmClient()
                 val control = if (client != null) {
-                    client.generateAudioControl(story, profileLabel, language)
+                    client.generateAudioControl(djContext)
                 } else {
                     DjAudioControlParser.fallbackForStory(story, language)
                 }
@@ -76,50 +103,42 @@ class DjPipeline(
                 playSegment(control)
             } catch (e: Exception) {
                 onStatus(context.getString(R.string.dj_error, e.message ?: "unknown"))
+                notifySegmentComplete()
             }
         }
     }
 
     fun shutdown() {
         tts?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        segmentCompleteListener = null
     }
 
     private suspend fun playSegment(control: DjAudioControl) {
-        duck(control.duckingVolume, control.rampInSeconds)
+        val spoken = DjAudioControlParser.spokenText(control)
+        val segment = control.copy(script = spoken)
+        duck(segment.duckingVolume, segment.rampInSeconds)
         val openAiKey = keyStore.getApiKey(SecureKeyStore.Provider.OPENAI)
         if (!openAiKey.isNullOrBlank()) {
             try {
-                val audio = OpenAiTtsClient(openAiKey).synthesize(control.script, "alloy")
-                playOpenAiTts(audio, control)
-                return
+                val audio = OpenAiTtsClient(openAiKey).synthesize(spoken, "alloy")
+                if (playOpenAiTtsViaWebAudio(audio, segment)) return
             } catch (_: Exception) {
                 // fall through to Android TTS
             }
         }
-        playAndroidTts(control)
+        playAndroidTts(segment)
     }
 
-    private suspend fun playOpenAiTts(audio: ByteArray, control: DjAudioControl) {
-        withContext(Dispatchers.Main) {
-            mediaPlayer?.release()
-            val tempFile = File.createTempFile("narrativedj-tts-", ".mp3")
-            tempFile.writeBytes(audio)
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(tempFile.absolutePath)
-                setOnCompletionListener {
-                    restoreDucking(control.rampOutSeconds)
-                    tempFile.delete()
-                }
-                setOnErrorListener { _, _, _ ->
-                    restoreDucking(control.rampOutSeconds)
-                    tempFile.delete()
-                    true
-                }
-                prepare()
-                start()
-            }
+    private suspend fun playOpenAiTtsViaWebAudio(audio: ByteArray, control: DjAudioControl): Boolean {
+        val webView = webViewProvider() ?: return false
+        return withContext(Dispatchers.Main) {
+            awaitingWebSpeechEnd = true
+            val b64 = Base64.encodeToString(audio, Base64.NO_WRAP)
+            webView.evaluateJavascript(
+                "NarrativeDJ.playSpeechBufferFromBase64('$b64', ${control.rampInSeconds}, ${control.rampOutSeconds});",
+                null,
+            )
+            true
         }
     }
 
@@ -148,6 +167,10 @@ class DjPipeline(
         webViewProvider()?.evaluateJavascript("NarrativeDJ.restore($rampOut);", null)
     }
 
+    private fun notifySegmentComplete() {
+        segmentCompleteListener?.invoke()
+    }
+
     private fun resolveLlmClient(): LlmClient? {
         keyStore.getApiKey(SecureKeyStore.Provider.GEMINI)?.let { return GeminiLlmClient(it) }
         keyStore.getApiKey(SecureKeyStore.Provider.OPENAI)?.let { return OpenAiLlmClient(it) }
@@ -162,4 +185,14 @@ class DjPipeline(
     companion object {
         private const val DEFAULT_RAMP_OUT = 0.55
     }
+}
+
+private fun DjAudioControl.copy(script: String = this.script): DjAudioControl {
+    return DjAudioControl(
+        duckingVolume = duckingVolume,
+        rampInSeconds = rampInSeconds,
+        rampOutSeconds = rampOutSeconds,
+        script = script,
+        ssml = ssml,
+    )
 }

@@ -58,6 +58,36 @@ class YtmControllerFixtureTest {
         assertTrue(nowPlaying.isPlaying)
     }
 
+    @Test
+    fun fixtureSearchAndPlay_updatesNowPlayingTitle() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val latch = CountDownLatch(1)
+        var parsed: YtmNowPlaying? = null
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val webView = WebView(context)
+            webView.settings.javaScriptEnabled = true
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    YtmAssetInjector.inject(webView, context) {
+                        webView.evaluateJavascript(
+                            "NarrativeDJYtm.searchAndPlay('Hotel California');",
+                        ) {
+                            webView.evaluateJavascript("NarrativeDJYtm.getNowPlaying();") { rawJson ->
+                                parsed = YtmNowPlayingParser.parse(unquoteJsString(rawJson))
+                                latch.countDown()
+                            }
+                        }
+                    }
+                }
+            }
+            webView.loadUrl("file:///android_asset/www/fixtures/ytm-poc-fixture.html")
+        }
+
+        assertTrue("Search/play harness timed out", latch.await(15, TimeUnit.SECONDS))
+        assertEquals("Hotel California", requireNotNull(parsed).title)
+    }
+
     private fun unquoteJsString(evalResult: String?): String {
         if (evalResult == null || evalResult == "null") return "null"
         return evalResult.trim().removeSurrounding("\"")
