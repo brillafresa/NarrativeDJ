@@ -20,6 +20,8 @@ FIXTURES = (
     "mock_tracks.json",
     "mock_llm_response.json",
     "mock_b2b_schedule.json",
+    "mock_user_request.json",
+    "mock_dj_transition.json",
 )
 
 

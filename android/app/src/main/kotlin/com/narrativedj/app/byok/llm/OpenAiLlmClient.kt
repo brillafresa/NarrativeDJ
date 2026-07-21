@@ -2,7 +2,6 @@ package com.narrativedj.app.byok.llm
 
 import com.narrativedj.app.dj.DjAudioControl
 import com.narrativedj.app.dj.DjAudioControlParser
-import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -15,9 +14,18 @@ class OpenAiLlmClient(
     private val model: String = "gpt-4o-mini",
 ) : LlmClient {
 
-    override suspend fun generateAudioControl(context: DjStoryContext): DjAudioControl {
+    override suspend fun generateTransitionMent(context: DjTransitionContext): DjAudioControl {
         return withContext(Dispatchers.IO) {
-            val prompt = LlmPromptBuilder.build(context)
+            val prompt = DjTransitionPromptBuilder.build(context)
+            val text = postChatCompletion(prompt)
+            val jsonPayload = LlmResponseExtractor.extractJsonPayload(text)
+            DjAudioControlParser.parse(jsonPayload)
+                ?: DjAudioControlParser.fallbackForTransition(context)
+        }
+    }
+
+    private suspend fun postChatCompletion(prompt: String): String {
+        return withContext(Dispatchers.IO) {
             val endpoint = URL("https://api.openai.com/v1/chat/completions")
             val body = JSONObject().apply {
                 put("model", model)
@@ -29,22 +37,19 @@ class OpenAiLlmClient(
                 })
                 put("response_format", JSONObject().put("type", "json_object"))
             }
-            val responseText = postJson(
+            postJson(
                 endpoint,
                 body.toString(),
                 mapOf(
                     "Content-Type" to "application/json",
                     "Authorization" to "Bearer $apiKey",
                 ),
-            )
-            val root = JSONObject(responseText)
-            val text = root.getJSONArray("choices")
-                .getJSONObject(0)
-                .getJSONObject("message")
-                .getString("content")
-            val jsonPayload = LlmResponseExtractor.extractJsonPayload(text)
-            DjAudioControlParser.parse(jsonPayload)
-                ?: DjAudioControlParser.fallbackForStory(context.story, context.language)
+            ).let { responseText ->
+                JSONObject(responseText).getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content")
+            }
         }
     }
 

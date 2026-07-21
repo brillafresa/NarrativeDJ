@@ -1,0 +1,14 @@
+{
+  "intent": "mixed",
+  "tracks": [
+    {
+      "requested_title": "Hotel California",
+      "search_query": "Hotel California Eagles",
+      "is_substitute": false,
+      "substitute_note": null,
+      "catalog_track_id": "hotel_california"
+    }
+  ],
+  "mood_hint": "비 오는 오후",
+  "chat_snippet": "오늘 시험 끝났어요"
+}

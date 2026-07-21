@@ -43,7 +43,8 @@ CHANGELOG v0.6.0 "Phase 1–3 complete" means **Scaffold Complete**, not Feature
 | WebView control | SVD, CSP bypass, now-playing parse, search/play JS API |
 | Cushion algorithm | Python↔Kotlin parity; **playback execution** via YTM |
 | Space profiles | Manual spinner selection; profile-filtered routing |
-| AI DJ pipeline | Story → LLM JSON → TTS → Web Audio ducking |
+| AI DJ pipeline | Transition ments (LLM+TTS) between tracks; messenger send parses requests only |
+| Radio UX | ▶ Send → candidate pool → auto scheduler + cushion |
 | Background playback | Foreground service, wake lock, MediaSession transport + metadata |
 | i18n | Korean default; English optional |
 | Release | Signed APK path, CI harness verification |

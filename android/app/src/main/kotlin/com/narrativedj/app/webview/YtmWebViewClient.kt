@@ -15,10 +15,33 @@ class YtmWebViewClient(
     private val onMusicPageReady: (String) -> Unit,
 ) : WebViewClient() {
 
+    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+        val url = request?.url?.toString().orEmpty()
+        if (shouldRedirectToMusic(url)) {
+            view?.loadUrl(YTM_HOME)
+            return true
+        }
+        return super.shouldOverrideUrlLoading(view, request)
+    }
+
+    @Deprecated("Deprecated in API")
+    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+        val pageUrl = url.orEmpty()
+        if (shouldRedirectToMusic(pageUrl)) {
+            view?.loadUrl(YTM_HOME)
+            return true
+        }
+        return super.shouldOverrideUrlLoading(view, url)
+    }
+
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
         val webView = view ?: return
         val pageUrl = url.orEmpty()
+        if (shouldRedirectToMusic(pageUrl)) {
+            webView.loadUrl(YTM_HOME)
+            return
+        }
         if (!isYouTubeMusicUrl(pageUrl)) return
 
         YtmAssetInjector.inject(webView, context) {
@@ -61,5 +84,14 @@ class YtmWebViewClient(
         fun isYouTubeMusicUrl(url: String): Boolean {
             return url.contains("music.youtube.com") || isHarnessFixtureUrl(url)
         }
+
+        fun shouldRedirectToMusic(url: String): Boolean {
+            if (url.isBlank()) return false
+            if (isYouTubeMusicUrl(url)) return false
+            if (isHarnessFixtureUrl(url)) return false
+            return url.contains("youtube.com") && !url.contains("music.youtube.com")
+        }
+
+        private const val YTM_HOME = "https://music.youtube.com"
     }
 }

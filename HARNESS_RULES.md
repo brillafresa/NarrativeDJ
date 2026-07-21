@@ -16,6 +16,7 @@ python harness/scripts/sync_fixtures.py
 python harness/scripts/test_cushion_router.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
+python harness/scripts/test_user_request_schema.py
 python harness/scripts/test_b2b_schedule_schema.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
@@ -47,7 +48,7 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 | `harness/config/emulator.json` | Local emulator AVD name and boot settings |
 | `harness/config/emulator.local.json` | Machine-specific SDK/AVD paths (gitignored) |
 | `docs/project-scope.md` | **Repository goal scope** (read before research.md tasks) |
-| `docs/development-plan.md` | MVP Phase A–E execution plan |
+| `docs/development-plan.md` | MVP Phase A–F execution plan |
 | `harness/src/` | Python reference algorithms |
 | `android/app/src/main/` | Production Kotlin + runtime assets |
 | `android/app/src/test/` | JVM unit tests (synced fixtures) |

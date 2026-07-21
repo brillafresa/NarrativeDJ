@@ -4,6 +4,37 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-07-21
+
+### Changed
+
+- Pre-push stabilization: removed legacy story-segment production path (`runStorySegment`, `LlmPromptBuilder`, Plan/Play UI strings)
+- Extended `test_llm_response_schema.py` to validate `mock_dj_transition.json`
+- JVM harness headers on radio + DJ parser tests; polling debug logs removed from `MainActivity`
+- Docs synced: harness inventory, development plan Phase F, conflict priority aligned with `.cursorrules`
+
+### Verified (pre-push)
+
+- Python harness 6/6, `./gradlew testDebugUnitTest` PASS
+
+## [0.8.0] — 2026-07-21
+
+### Added
+
+- **Radio UX:** Messenger-style **▶ Send** — LLM parses song/mood/chat (no immediate TTS)
+- **Candidate pool** with dedupe; **20-track play history** skip at selection time
+- **RadioScheduler** — auto next track + cushion bridges; empty-pool similar-track fallback
+- **DjInterstitialGate** — DJ ment randomly every 1–2 track transitions (substitute apology + chat memory)
+- **YTM redirect** — return to `music.youtube.com` after login lands on `youtube.com`
+- Harness: `mock_user_request.json`, `test_user_request_schema.py`, radio JVM tests
+
+### Changed
+
+- Removed Plan / Play / DJ buttons; single send control
+- Input field dark-theme colors (readable on control panel)
+- `LlmClient` adds `generateTransitionMent`; `DjPipeline.runTransitionMent`
+- Version code 7
+
 ## [0.7.1] — 2026-07-21
 
 ### Added

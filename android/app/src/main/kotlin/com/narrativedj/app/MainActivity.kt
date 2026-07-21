@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
@@ -37,8 +36,10 @@ import com.narrativedj.app.locale.AppLanguage
 import com.narrativedj.app.locale.AppLocaleStore
 import com.narrativedj.app.profile.SpaceProfile
 import com.narrativedj.app.profile.SpaceProfiles
+import com.narrativedj.app.radio.RadioScheduler
+import com.narrativedj.app.radio.RadioSessionController
+import com.narrativedj.app.radio.RequestParserService
 import com.narrativedj.app.scheduler.CushionPlaybackController
-import com.narrativedj.app.scheduler.CushionPlan
 import com.narrativedj.app.scheduler.CushionRoutePlanner
 import com.narrativedj.app.scheduler.TrackCatalogLoader
 import com.narrativedj.app.service.MediaPlaybackService
@@ -55,18 +56,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var keyStore: SecureKeyStore
     private lateinit var b2bStore: B2bLicenseStore
     private lateinit var djPipeline: DjPipeline
-    private lateinit var cushionPlanner: CushionRoutePlanner
-    private lateinit var trackCatalog: List<com.narrativedj.app.scheduler.CatalogTrack>
-    private lateinit var cushionPlayback: CushionPlaybackController
+    private lateinit var radioSession: RadioSessionController
     private lateinit var musicProvider: MusicProvider
     private var tts: TextToSpeech? = null
     private var selectedProfile: SpaceProfile = SpaceProfiles.cozyBrunchCafe
-    private var lastCushionPlan: CushionPlan? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var musicPageReady = false
-    private var currentTrackId: String? = null
-    private var lastCushionSummary: String? = null
 
     private val nowPlayingPoller = object : Runnable {
         override fun run() {
@@ -93,7 +89,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
         refreshMusicProvider()
 
-        trackCatalog = TrackCatalogLoader.load(this)
+        val trackCatalog = TrackCatalogLoader.load(this)
         val vectorDb = trackCatalog.associate { track ->
             track.id to com.narrativedj.app.scheduler.CushionMusicScheduler.trackToVector(
                 track.bpm,
@@ -102,19 +98,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 track.embedding,
             )
         }
-        cushionPlanner = CushionRoutePlanner(
+        val cushionPlanner = CushionRoutePlanner(
             com.narrativedj.app.scheduler.CushionMusicScheduler(vectorDb),
             trackCatalog,
         )
-        cushionPlayback = CushionPlaybackController(
+        val cushionPlayback = CushionPlaybackController(
             catalog = trackCatalog,
             webView = binding.webView,
             handler = mainHandler,
         )
-        djPipeline.setOnSegmentCompleteListener { refreshCushionSuggestion(forceStatus = true) }
+        val requestParser = RequestParserService(keyStore, trackCatalog, cushionPlanner)
+        val radioScheduler = RadioScheduler(cushionPlanner, trackCatalog)
+        radioSession = RadioSessionController(
+            context = this,
+            scope = lifecycleScope,
+            requestParser = requestParser,
+            scheduler = radioScheduler,
+            cushionPlayback = cushionPlayback,
+            djPipeline = djPipeline,
+            catalog = trackCatalog,
+            planner = cushionPlanner,
+            languageProvider = { AppLocaleStore.getLanguage(this) },
+            onStatus = ::updateStatus,
+        )
 
         setupProfileSpinner()
-        setupDjControls()
+        setupSendControl()
         setupPlaybackTransport()
         applyCommercialGuardStatus()
 
@@ -165,9 +174,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            tts?.let { engine ->
-                djPipeline.bindTts(engine)
-            }
+            tts?.let { engine -> djPipeline.bindTts(engine) }
         }
     }
 
@@ -217,37 +224,27 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.profileSpinner.setSelection(0)
         binding.profileSpinner.setOnItemSelectedListenerCompat { position ->
             selectedProfile = SpaceProfiles.all[position]
-            refreshCushionSuggestion()
+            radioSession.setProfile(selectedProfile)
         }
     }
 
-    private fun setupDjControls() {
-        binding.btnDjSend.setOnClickListener {
-            val story = binding.storyInput.text?.toString().orEmpty()
-            val targetTitle = lastCushionPlan?.targetTitle
-            val currentTitle = trackCatalog.firstOrNull { it.id == currentTrackId }?.title
-            djPipeline.runStorySegment(
-                story = story,
-                profileLabel = selectedProfile.label(this),
-                currentTrackTitle = currentTitle,
-                targetTrackTitle = targetTitle,
-                onStatus = ::updateStatus,
-            )
-        }
-        binding.btnPlanCushion.setOnClickListener {
-            refreshCushionSuggestion(forceStatus = true)
-        }
-        binding.btnExecuteCushion.setOnClickListener {
-            executeCushionPlan()
-        }
+    private fun setupSendControl() {
+        binding.btnSend.setOnClickListener { submitMessage() }
         binding.storyInput.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                binding.btnDjSend.performClick()
+            if (actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_DONE) {
+                submitMessage()
                 true
             } else {
                 false
             }
         }
+    }
+
+    private fun submitMessage() {
+        val text = binding.storyInput.text?.toString().orEmpty()
+        if (text.isBlank()) return
+        binding.storyInput.text?.clear()
+        radioSession.handleUserSend(text)
     }
 
     private fun setupPlaybackTransport() {
@@ -274,7 +271,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun onMusicPageReady(url: String) {
         musicPageReady = true
         startPlaybackService()
-        Log.i(TAG, "Music page loaded: $url")
         binding.webView.evaluateJavascript("NarrativeDJYtm.runSvd();") { rawJson ->
             val report = YtmSvdReportParser.parse(unquoteJsString(rawJson))
             val svdStatus = if (report?.healthy == true) {
@@ -282,12 +278,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             } else {
                 getString(R.string.status_svd_degraded)
             }
-            val providerNote = musicProvider.localizedLabel(this)
             updateStatus(
                 getString(
                     R.string.status_page_ready,
                     svdStatus,
-                    providerNote,
+                    musicProvider.localizedLabel(this),
                     selectedProfile.label(this),
                 ),
             )
@@ -301,54 +296,21 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.webView.evaluateJavascript("NarrativeDJYtm.getNowPlaying();") { rawJson ->
             val nowPlaying = YtmNowPlayingParser.parse(unquoteJsString(rawJson)) ?: return@evaluateJavascript
             if (nowPlaying.title != null || nowPlaying.artist != null) {
-                val resolvedId = cushionPlanner.resolveTrackId(nowPlaying.title)
-                if (resolvedId != null && resolvedId != currentTrackId) {
-                    currentTrackId = resolvedId
-                    refreshCushionSuggestion()
-                    logB2bStreamIfApplicable(resolvedId)
-                }
-                Log.i(TAG, "Now playing: ${nowPlaying.displayLabel()}")
+                radioSession.updateNowPlaying(nowPlaying.title, nowPlaying.artist)
                 PlaybackSessionState.updateNowPlaying(
                     nowPlaying.title,
                     nowPlaying.artist,
                     nowPlaying.isPlaying,
                 )
-                val cushionNote = lastCushionSummary?.let { " | $it" }.orEmpty()
+                val poolNote = getString(R.string.status_pool_size, radioSession.candidatePool.size())
                 updateStatus(
                     getString(
                         R.string.status_now_playing,
                         selectedProfile.label(this),
-                        nowPlaying.displayLabel() + cushionNote,
+                        nowPlaying.displayLabel() + " | $poolNote",
                     ),
                 )
             }
-        }
-    }
-
-    private fun logB2bStreamIfApplicable(trackId: String) {
-        if (musicProvider.mode != MusicProviderMode.B2B_STREAMING) return
-        lifecycleScope.launch {
-            val url = musicProvider.resolveStreamUrl(trackId)
-            if (url != null) Log.i(TAG, "B2B stream URL: $url")
-        }
-    }
-
-    private fun refreshCushionSuggestion(forceStatus: Boolean = false) {
-        val currentId = currentTrackId
-        if (currentId == null) {
-            if (forceStatus) updateStatus(getString(R.string.status_play_track_first))
-            return
-        }
-        val target = cushionPlanner.suggestTarget(currentId, selectedProfile) ?: run {
-            if (forceStatus) updateStatus(getString(R.string.status_no_profile_target))
-            lastCushionSummary = null
-            return
-        }
-        val plan = cushionPlanner.planRoute(currentId, target.id, selectedProfile)
-        lastCushionPlan = plan
-        lastCushionSummary = plan?.localizedSummary(this)
-        if (forceStatus) {
-            updateStatus(lastCushionSummary ?: getString(R.string.status_cushion_plan_failed))
         }
     }
 
@@ -359,7 +321,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         val currentLanguage = AppLocaleStore.getLanguage(this)
         val checkedItem = if (currentLanguage == AppLanguage.ENGLISH) 1 else 0
-
         AlertDialog.Builder(this)
             .setTitle(R.string.language_settings)
             .setSingleChoiceItems(options, checkedItem) { dialog, which ->
@@ -389,7 +350,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         layout.addView(geminiInput)
         layout.addView(openaiInput)
-
         AlertDialog.Builder(this)
             .setTitle(R.string.byok_settings)
             .setView(layout)
@@ -440,10 +400,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             adapter = ArrayAdapter(
                 this@MainActivity,
                 android.R.layout.simple_spinner_dropdown_item,
-                listOf(
-                    getString(R.string.provider_byok),
-                    getString(R.string.provider_b2b),
-                ),
+                listOf(getString(R.string.provider_byok), getString(R.string.provider_b2b)),
             )
             setSelection(if (b2bStore.getProviderMode() == MusicProviderMode.B2B_STREAMING) 1 else 0)
         }
@@ -451,10 +408,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             adapter = ArrayAdapter(
                 this@MainActivity,
                 android.R.layout.simple_spinner_dropdown_item,
-                listOf(
-                    getString(R.string.venue_personal),
-                    getString(R.string.venue_commercial),
-                ),
+                listOf(getString(R.string.venue_personal), getString(R.string.venue_commercial)),
             )
             setSelection(if (b2bStore.getVenueType() == CommercialSpaceGuard.VenueType.COMMERCIAL) 1 else 0)
         }
@@ -462,9 +416,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         layout.addView(partnerInput)
         layout.addView(modeSpinner)
         layout.addView(venueSpinner)
-
         val scheduleCount = ScheduleRepository(this).loadDefaultSchedule()?.locations?.size ?: 0
-
         AlertDialog.Builder(this)
             .setTitle(R.string.b2b_settings)
             .setMessage(getString(R.string.admin_summary, scheduleCount))
@@ -475,49 +427,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (license.isNotBlank()) b2bStore.saveLicenseKey(license) else b2bStore.saveLicenseKey("")
                 if (partner.isNotBlank()) b2bStore.savePartnerBaseUrl(partner) else b2bStore.savePartnerBaseUrl("")
                 b2bStore.saveProviderMode(
-                    if (modeSpinner.selectedItemPosition == 1) {
-                        MusicProviderMode.B2B_STREAMING
-                    } else {
-                        MusicProviderMode.BYOK_WEBVIEW
-                    },
+                    if (modeSpinner.selectedItemPosition == 1) MusicProviderMode.B2B_STREAMING
+                    else MusicProviderMode.BYOK_WEBVIEW,
                 )
                 b2bStore.saveVenueType(
-                    if (venueSpinner.selectedItemPosition == 1) {
-                        CommercialSpaceGuard.VenueType.COMMERCIAL
-                    } else {
-                        CommercialSpaceGuard.VenueType.PERSONAL
-                    },
+                    if (venueSpinner.selectedItemPosition == 1) CommercialSpaceGuard.VenueType.COMMERCIAL
+                    else CommercialSpaceGuard.VenueType.PERSONAL,
                 )
                 refreshMusicProvider()
                 applyCommercialGuardStatus()
-                updateStatus(
-                    getString(R.string.status_b2b_saved, musicProvider.localizedLabel(this)),
-                )
+                updateStatus(getString(R.string.status_b2b_saved, musicProvider.localizedLabel(this)))
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    private fun executeCushionPlan() {
-        val plan = lastCushionPlan
-        if (plan == null || plan.dropped) {
-            refreshCushionSuggestion(forceStatus = true)
-            if (lastCushionPlan == null || lastCushionPlan?.dropped == true) {
-                updateStatus(getString(R.string.status_cushion_plan_failed))
-            }
-            return
-        }
-        updateStatus(getString(R.string.status_cushion_playing, plan.localizedSummary(this)))
-        cushionPlayback.playPlan(
-            plan = plan,
-            onStep = { _, query ->
-                updateStatus(getString(R.string.status_cushion_playing, query))
-            },
-            onComplete = {
-                currentTrackId = plan.targetTrackId
-                refreshCushionSuggestion(forceStatus = true)
-            },
-        )
     }
 
     private fun onBridgeMessage(data: String) {
@@ -541,7 +463,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     companion object {
-        private const val TAG = "NarrativeDJ"
         private const val YTMUSIC_URL = "https://music.youtube.com"
         private const val JS_BRIDGE_NAME = "NarrativeDJAndroid"
         private const val NOW_PLAYING_POLL_MS = 5_000L

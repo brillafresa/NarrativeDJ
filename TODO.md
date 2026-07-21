@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.7.1` — Personal BYOK MVP (manual QA pending)
+**Current release:** `0.8.1` — Radio messenger UX (manual YTM QA pending)
 
 ## Scaffold complete (not E2E)
 
@@ -15,7 +15,14 @@
 
 ## In scope — MVP feature completion
 
-See [development-plan.md](docs/development-plan.md) for exit criteria.
+### Phase F — Radio messenger UX (v0.8.0)
+
+- [x] Single ▶ send control (Plan/Play/DJ removed)
+- [x] LLM/local request parser → candidate pool + listener memory
+- [x] RadioScheduler + auto play + cushion + 20-track history
+- [x] DJ interstitial (random 1–2 songs) with substitute/chat context
+- [x] YTM login redirect to music.youtube.com
+- [ ] Live YTM manual QA with new send flow
 
 ### Phase A — Live YTM + WebView control
 
@@ -26,14 +33,14 @@ See [development-plan.md](docs/development-plan.md) for exit criteria.
 ### Phase B — Cushion playback
 
 - [x] `CushionPlaybackController` + catalog `search_query`
-- [x] Plan + Execute UI buttons
+- [x] Auto cushion via `RadioScheduler` + `RadioSessionController` (Plan/Execute UI removed in v0.8.0)
 - [x] Harness: `mock_cushion_playback.json` + unit test
 
 ### Phase C — DJ radio loop
 
 - [x] OpenAI TTS via Web Audio `playSpeechBuffer`
-- [x] LLM prompt includes profile + current/target track context
-- [x] Post-DJ cushion suggestion refresh
+- [x] Transition ments between tracks (`runTransitionMent`, not send-triggered)
+- [x] Substitute apology + chat memory in DJ fallback
 
 ### Phase D — Background + MediaSession
 
@@ -69,6 +76,7 @@ python harness/scripts/sync_fixtures.py
 python harness/scripts/test_cushion_router.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
+python harness/scripts/test_user_request_schema.py
 python harness/scripts/test_b2b_schedule_schema.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test

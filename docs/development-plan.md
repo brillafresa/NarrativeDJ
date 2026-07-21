@@ -7,9 +7,9 @@ This is the execution roadmap to reach **Release Ready** for the personal BYOK A
 
 ## Current baseline (2026-07-21)
 
-- Harness: Python 5 scripts + `./gradlew test` + instrumentation 7/7 (Pixel_8) — **green**
-- MVP code: YTM search/play JS, cushion execute, DJ ducking loop, MediaSession metadata — **complete**
-- Release: v0.7.1; unsigned `assembleRelease` OK
+- Harness: Python 6 scripts + `./gradlew test` — **green** (instrumentation optional)
+- MVP code: Radio messenger UX (v0.8.0), YTM search/play, auto cushion scheduler, transition DJ ments
+- Release: v0.8.1; unsigned `assembleRelease` OK
 - **Remaining for Release Ready:** live YTM manual QA + 30 min background sign-off + signed APK
 
 ## Phase overview
@@ -18,11 +18,12 @@ This is the execution roadmap to reach **Release Ready** for the personal BYOK A
 |-------|-------|------------|
 | **A** | Live YTM validation + search/play JS API | — |
 | **B** | Cushion planning → YTM playback | A |
-| **C** | DJ radio loop (story → ment → ducking) | B |
+| **C** | DJ transition ments + ducking | B |
 | **D** | Background + MediaSession metadata | A |
 | **E** | Release ready APK | C, D |
+| **F** | Radio messenger UX (▶ Send, pool, auto loop) | B, C |
 
-Recommended order: **A → B → C** (D can parallel after A).
+Recommended order: **A → B → C → F** (D can parallel after A).
 
 ---
 
@@ -112,16 +113,35 @@ Recommended order: **A → B → C** (D can parallel after A).
 
 ---
 
+## Phase F — Radio messenger UX (v0.8.0)
+
+**Goal:** Messenger-style ▶ Send → parse (no immediate TTS) → candidate pool → auto scheduler + transition DJ.
+
+**Deliverables:**
+- `RadioSessionController`, `CandidatePool`, `PlayHistory`, `ListenerMemory`, `RadioScheduler`
+- `RequestParserService` + `UserRequestParser` (BYOK LLM or local fallback)
+- `DjInterstitialGate` — random ment every 1–2 track transitions
+- Single ▶ send UI; YTM login redirect to `music.youtube.com`
+
+**Harness:**
+- `mock_user_request.json`, `test_user_request_schema.py`
+- `mock_dj_transition.json` (validated by `test_llm_response_schema.py`)
+- JVM: `CandidatePoolTest`, `PlayHistoryTest`, `RadioSchedulerTest`, `UserRequestParserTest`, `DjInterstitialGateTest`
+
+**Exit criteria:** Harness green; device QA — send song/mood/chat, verify pool + auto play + transition DJ.
+
+---
+
 ## Session handoff
 
 Update this section at the end of each work session.
 
-### Session Handoff — 2026-07-21 (stabilization)
+### Session Handoff — 2026-07-21 (v0.8.1 stabilization)
 
-- **Last completed:** v0.7.1 harness/doc sync; scope banners; release checklist; full harness green; main-ready merge
-- **Harness status:** Python 5/5 PASS, `./gradlew test` PASS, instrumentation 7/7 PASS, `assembleRelease` unsigned OK
-- **Blockers:** Live YTM + 30 min background manual QA; signed APK needs `android/signing.properties`
-- **Next session:** Manual checklists on device; keystore + signed release if distributing
+- **Last completed:** Harness cleanup, dead code removal (legacy story-segment path), docs sync, v0.8.1
+- **Harness status:** Python 6/6 PASS, `./gradlew testDebugUnitTest` PASS
+- **Blockers:** Live YTM QA with new send flow; signed APK
+- **Next session:** Device QA — send song/mood/chat, verify pool + transition DJ
 
 ```markdown
 <!-- Template for future sessions -->
@@ -142,6 +162,7 @@ python harness/scripts/sync_fixtures.py
 python harness/scripts/test_cushion_router.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
+python harness/scripts/test_user_request_schema.py
 python harness/scripts/test_b2b_schedule_schema.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test

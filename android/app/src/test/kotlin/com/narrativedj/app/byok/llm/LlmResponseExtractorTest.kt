@@ -1,3 +1,8 @@
+/**
+ * JVM harness: LLM JSON extraction + audio-control fixture parsing.
+ * Fixtures: mock_llm_response.json, mock_dj_transition.json (sync via harness/scripts/sync_fixtures.py)
+ * Run: cd android && ./gradlew test --tests com.narrativedj.app.byok.llm.LlmResponseExtractorTest
+ */
 package com.narrativedj.app.byok.llm
 
 import com.narrativedj.app.dj.DjAudioControlParser
@@ -36,5 +41,14 @@ class LlmResponseExtractorTest {
         val control = requireNotNull(DjAudioControlParser.parse(json))
         assertEquals(0.18, control.duckingVolume, 0.001)
         assertTrue(control.script.contains("rainy afternoon"))
+    }
+
+    @Test
+    fun parseDjTransitionFixture_matchesSchema() {
+        val stream = javaClass.classLoader?.getResourceAsStream("mock_dj_transition.json")
+            ?: error("missing fixture — run python harness/scripts/sync_fixtures.py")
+        val json = stream.use { it.readBytes().toString(StandardCharsets.UTF_8) }
+        val control = requireNotNull(DjAudioControlParser.parse(json))
+        assertTrue(control.script.contains("rainy mood"))
     }
 }

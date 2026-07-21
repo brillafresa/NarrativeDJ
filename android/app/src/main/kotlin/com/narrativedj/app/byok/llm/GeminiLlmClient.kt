@@ -2,7 +2,6 @@ package com.narrativedj.app.byok.llm
 
 import com.narrativedj.app.dj.DjAudioControl
 import com.narrativedj.app.dj.DjAudioControlParser
-import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -15,29 +14,32 @@ class GeminiLlmClient(
     private val model: String = "gemini-1.5-flash",
 ) : LlmClient {
 
-    override suspend fun generateAudioControl(context: DjStoryContext): DjAudioControl {
+    override suspend fun generateTransitionMent(context: DjTransitionContext): DjAudioControl {
         return withContext(Dispatchers.IO) {
-            val prompt = LlmPromptBuilder.build(context)
-            val endpoint = URL(
-                "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey",
-            )
-            val body = JSONObject().apply {
-                put("contents", JSONArray().put(
-                    JSONObject().put("parts", JSONArray().put(JSONObject().put("text", prompt))),
-                ))
-            }
-            val responseText = postJson(endpoint, body.toString(), mapOf("Content-Type" to "application/json"))
-            val root = JSONObject(responseText)
-            val text = root.getJSONArray("candidates")
-                .getJSONObject(0)
-                .getJSONObject("content")
-                .getJSONArray("parts")
-                .getJSONObject(0)
-                .getString("text")
+            val prompt = DjTransitionPromptBuilder.build(context)
+            val text = postGenerateContent(prompt)
             val jsonPayload = LlmResponseExtractor.extractJsonPayload(text)
             DjAudioControlParser.parse(jsonPayload)
-                ?: DjAudioControlParser.fallbackForStory(context.story, context.language)
+                ?: DjAudioControlParser.fallbackForTransition(context)
         }
+    }
+
+    private fun postGenerateContent(prompt: String): String {
+        val endpoint = URL(
+            "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey",
+        )
+        val body = JSONObject().apply {
+            put("contents", JSONArray().put(
+                JSONObject().put("parts", JSONArray().put(JSONObject().put("text", prompt))),
+            ))
+        }
+        val responseText = postJson(endpoint, body.toString(), mapOf("Content-Type" to "application/json"))
+        return JSONObject(responseText).getJSONArray("candidates")
+            .getJSONObject(0)
+            .getJSONObject("content")
+            .getJSONArray("parts")
+            .getJSONObject(0)
+            .getString("text")
     }
 
     private fun postJson(url: URL, body: String, headers: Map<String, String>): String {

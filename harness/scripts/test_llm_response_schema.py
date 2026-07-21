@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Validate mock LLM audio-control JSON fixtures."""
+"""
+Validate DJ audio-control JSON fixtures (LLM response shape).
+
+Purpose: Shared schema for story-segment and transition-ment LLM outputs.
+Fixtures: harness/tests/mock_llm_response.json, mock_dj_transition.json
+Run: python harness/scripts/test_llm_response_schema.py
+"""
 
 from __future__ import annotations
 
@@ -8,29 +14,44 @@ import sys
 from pathlib import Path
 
 HARNESS_ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = HARNESS_ROOT / "tests" / "mock_llm_response.json"
+FIXTURES = (
+    HARNESS_ROOT / "tests" / "mock_llm_response.json",
+    HARNESS_ROOT / "tests" / "mock_dj_transition.json",
+)
 REQUIRED = ("ducking_volume", "ramp_duration", "script")
 
 
-def main() -> int:
-    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+def validate_fixture(path: Path) -> int:
+    data = json.loads(path.read_text(encoding="utf-8"))
     failed = 0
     for key in REQUIRED:
         if key not in data:
-            print(f"FAIL: missing key {key!r}")
+            print(f"FAIL [{path.name}]: missing key {key!r}")
             failed += 1
     if not isinstance(data.get("script"), str) or not data["script"].strip():
-        print("FAIL: script must be non-empty string")
+        print(f"FAIL [{path.name}]: script must be non-empty string")
         failed += 1
     for float_key in ("ducking_volume", "ramp_duration", "ramp_out_duration"):
         if float_key in data and not isinstance(data[float_key], (int, float)):
-            print(f"FAIL: {float_key} must be numeric")
+            print(f"FAIL [{path.name}]: {float_key} must be numeric")
             failed += 1
+    if failed == 0:
+        print(f"PASS: {path.name}")
+    return failed
 
-    if failed:
-        print(f"\n{failed} check(s) FAILED")
+
+def main() -> int:
+    total_failed = 0
+    for fixture in FIXTURES:
+        if not fixture.exists():
+            print(f"FAIL: missing fixture {fixture}")
+            total_failed += 1
+            continue
+        total_failed += validate_fixture(fixture)
+    if total_failed:
+        print(f"\n{total_failed} check(s) FAILED")
         return 1
-    print("Mock LLM response schema PASSED")
+    print("\nLLM audio-control schema PASSED")
     return 0
 
 

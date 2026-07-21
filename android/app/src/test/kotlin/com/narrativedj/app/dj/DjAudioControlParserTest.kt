@@ -1,6 +1,11 @@
+/**
+ * JVM harness: DjAudioControl JSON parse, SSML strip, transition/story fallbacks.
+ * Fixture: mock_dj_transition.json (sync via harness/scripts/sync_fixtures.py)
+ * Run: cd android && ./gradlew test --tests com.narrativedj.app.dj.DjAudioControlParserTest
+ */
 package com.narrativedj.app.dj
 
-import com.narrativedj.app.dj.DjAudioControlParser
+import com.narrativedj.app.byok.llm.DjTransitionContext
 import com.narrativedj.app.locale.AppLanguage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -46,6 +51,23 @@ class DjAudioControlParserTest {
             ssml = "<speak>Hello <break time=\"500ms\"/> world</speak>",
         )
         assertEquals("Hello world", DjAudioControlParser.spokenText(control))
+    }
+
+    @Test
+    fun fallbackForTransition_includesSubstituteNote() {
+        val control = DjAudioControlParser.fallbackForTransition(
+            DjTransitionContext(
+                profileLabel = "Café",
+                language = AppLanguage.KOREAN,
+                previousTrackTitle = "몽중인",
+                nextTrackTitle = "California Dreamin'",
+                nextSearchQuery = "California Dreamin'",
+                isSubstitute = true,
+                substituteNote = "Hotel California을 찾지 못했습니다",
+            ),
+        )
+        assert(control.script.contains("Hotel California"))
+        assert(control.script.contains("California Dreamin'"))
     }
 
     @Test

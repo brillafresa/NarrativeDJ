@@ -1,5 +1,6 @@
 package com.narrativedj.app.dj
 
+import com.narrativedj.app.byok.llm.DjTransitionContext
 import com.narrativedj.app.locale.AppLanguage
 
 data class DjAudioControl(
@@ -50,6 +51,36 @@ object DjAudioControlParser {
             when (language) {
                 AppLanguage.KOREAN -> "청취자 사연: $trimmed"
                 AppLanguage.ENGLISH -> "A listener wrote in: $trimmed"
+            }
+        }
+        return DjAudioControl(
+            duckingVolume = DjAudioControl.DEFAULT_DUCKING_VOLUME,
+            rampInSeconds = DjAudioControl.DEFAULT_RAMP_IN,
+            rampOutSeconds = DjAudioControl.DEFAULT_RAMP_OUT,
+            script = script,
+            ssml = null,
+        )
+    }
+
+    fun fallbackForTransition(context: DjTransitionContext): DjAudioControl {
+        val previous = context.previousTrackTitle ?: "—"
+        val next = context.nextTrackTitle ?: context.nextSearchQuery ?: "—"
+        val script = when (context.language) {
+            AppLanguage.KOREAN -> buildString {
+                if (context.isSubstitute && !context.substituteNote.isNullOrBlank()) {
+                    append(context.substituteNote)
+                    append(' ')
+                }
+                append("방금 $previous 이었고, 이어서 $next 들려드릴게요.")
+                context.listenerSnippets.lastOrNull()?.let { append(" $it 님, 메시지 고마워요.") }
+            }
+            AppLanguage.ENGLISH -> buildString {
+                if (context.isSubstitute && !context.substituteNote.isNullOrBlank()) {
+                    append(context.substituteNote)
+                    append(' ')
+                }
+                append("That was $previous — up next, $next.")
+                context.listenerSnippets.lastOrNull()?.let { append(" Thanks for writing in.") }
             }
         }
         return DjAudioControl(

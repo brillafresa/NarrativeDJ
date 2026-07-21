@@ -49,10 +49,10 @@ cd android && ./gradlew assembleDebug installDebug
 - [ ] Audio is audible from device speaker/headphones
 - [ ] Status bar updates with track title and artist (may take up to 5 s poll interval)
 
-### D. Search / play API (Phase A)
+### D. Search / play API + messenger send (Phase A + F)
 
-- [ ] `NarrativeDJYtm.searchAndPlay('California Dreamin\\'')` succeeds on fixture (instrumentation)
-- [ ] On live YTM: search from cushion execute plays audible track (manual)
+- [ ] ▶ Send queues song/mood to pool (no immediate DJ TTS)
+- [ ] On live YTM: search from send plays audible track (manual)
 
 ### E. Background (Phase D)
 

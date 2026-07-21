@@ -7,7 +7,7 @@ import android.util.Base64
 import android.webkit.WebView
 import com.narrativedj.app.R
 import com.narrativedj.app.byok.SecureKeyStore
-import com.narrativedj.app.byok.llm.DjStoryContext
+import com.narrativedj.app.byok.llm.DjTransitionContext
 import com.narrativedj.app.byok.llm.GeminiLlmClient
 import com.narrativedj.app.byok.llm.LlmClient
 import com.narrativedj.app.byok.llm.OpenAiLlmClient
@@ -75,35 +75,26 @@ class DjPipeline(
             keyStore.hasApiKey(SecureKeyStore.Provider.OPENAI)
     }
 
-    fun runStorySegment(
-        story: String,
-        profileLabel: String,
-        currentTrackTitle: String? = null,
-        targetTrackTitle: String? = null,
+    fun runTransitionMent(
+        transition: DjTransitionContext,
         onStatus: (String) -> Unit,
+        onComplete: (() -> Unit)? = null,
     ) {
         scope.launch {
             try {
-                val language = languageProvider()
                 onStatus(context.getString(R.string.dj_generating))
-                val djContext = DjStoryContext(
-                    story = story,
-                    profileLabel = profileLabel,
-                    language = language,
-                    currentTrackTitle = currentTrackTitle,
-                    targetTrackTitle = targetTrackTitle,
-                )
-                val client = resolveLlmClient()
-                val control = if (client != null) {
-                    client.generateAudioControl(djContext)
-                } else {
-                    DjAudioControlParser.fallbackForStory(story, language)
-                }
+                val control = resolveTransitionControl(transition)
                 onStatus(context.getString(R.string.dj_line_prefix, control.script))
+                val previousListener = segmentCompleteListener
+                setOnSegmentCompleteListener {
+                    previousListener?.invoke()
+                    onComplete?.invoke()
+                    setOnSegmentCompleteListener(previousListener)
+                }
                 playSegment(control)
             } catch (e: Exception) {
                 onStatus(context.getString(R.string.dj_error, e.message ?: "unknown"))
-                notifySegmentComplete()
+                onComplete?.invoke()
             }
         }
     }
@@ -175,6 +166,18 @@ class DjPipeline(
         keyStore.getApiKey(SecureKeyStore.Provider.GEMINI)?.let { return GeminiLlmClient(it) }
         keyStore.getApiKey(SecureKeyStore.Provider.OPENAI)?.let { return OpenAiLlmClient(it) }
         return null
+    }
+
+    private suspend fun resolveTransitionControl(context: DjTransitionContext): DjAudioControl {
+        val client = resolveLlmClient()
+        if (client != null) {
+            try {
+                return client.generateTransitionMent(context)
+            } catch (_: Exception) {
+                // fall through
+            }
+        }
+        return DjAudioControlParser.fallbackForTransition(context)
     }
 
     private fun estimateSpeechMs(script: String): Long {
