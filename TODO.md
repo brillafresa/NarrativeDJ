@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.7.0` — Personal BYOK MVP (in progress)
+**Current release:** `0.7.1` — Personal BYOK MVP (manual QA pending)
 
 ## Scaffold complete (not E2E)
 
@@ -44,8 +44,9 @@ See [development-plan.md](docs/development-plan.md) for exit criteria.
 ### Phase E — Release ready
 
 - [x] Version 0.7.0 bump
-- [ ] Signed release APK (local keystore)
-- [ ] Full release checklist ([release.md](docs/release.md))
+- [x] Unsigned release APK (`assembleRelease` — local test build)
+- [ ] Signed release APK (local keystore — see [release.md](docs/release.md))
+- [ ] Full release checklist manual sign-off ([release.md](docs/release.md))
 
 ## Deferred / out of scope
 

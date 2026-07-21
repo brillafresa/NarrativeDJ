@@ -1,5 +1,10 @@
 package com.narrativedj.app.scheduler
 
+/**
+ * JVM harness: cushion route → YTM search/play sequence planning.
+ * Fixture: src/test/resources/mock_tracks.json + harness/tests/mock_cushion_playback.json (canonical order)
+ * Run: cd android && ./gradlew test --tests com.narrativedj.app.scheduler.CushionPlaybackControllerTest
+ */
 import com.narrativedj.app.R
 import com.narrativedj.app.profile.SpaceProfile
 import org.junit.Assert.assertEquals

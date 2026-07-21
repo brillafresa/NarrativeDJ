@@ -7,9 +7,10 @@ This is the execution roadmap to reach **Release Ready** for the personal BYOK A
 
 ## Current baseline (2026-07-21)
 
-- Harness: Python 5 scripts + `./gradlew test` + instrumentation 6/6 (Pixel_8) — **green**
-- Scaffold: WebView, SVD, cushion planner, DjPipeline, MediaPlaybackService, i18n
-- Gaps: cushion playback, live YTM QA sign-off, unified TTS ducking, MediaSession metadata
+- Harness: Python 5 scripts + `./gradlew test` + instrumentation 7/7 (Pixel_8) — **green**
+- MVP code: YTM search/play JS, cushion execute, DJ ducking loop, MediaSession metadata — **complete**
+- Release: v0.7.1; unsigned `assembleRelease` OK
+- **Remaining for Release Ready:** live YTM manual QA + 30 min background sign-off + signed APK
 
 ## Phase overview
 
@@ -115,12 +116,12 @@ Recommended order: **A → B → C** (D can parallel after A).
 
 Update this section at the end of each work session.
 
-### Session Handoff — 2026-07-21
+### Session Handoff — 2026-07-21 (stabilization)
 
-- **Last completed:** MVP plan v0.7.0 — scope docs, Phase A–E code (search/play, cushion execute, DJ ducking, metadata)
-- **Harness status:** Python 5/5 PASS, `./gradlew test` PASS (43 tests), instrumentation 7/7 PASS (search/play fixture added)
-- **Blockers:** Live YTM + 30 min background QA require manual sign-off on checklist
-- **Next session:** Fill [webview_poc_checklist.md](../harness/docs/webview_poc_checklist.md) and [background_qa_checklist.md](../harness/docs/background_qa_checklist.md); local signed release if keystore ready
+- **Last completed:** v0.7.1 harness/doc sync; scope banners; release checklist; full harness green; main-ready merge
+- **Harness status:** Python 5/5 PASS, `./gradlew test` PASS, instrumentation 7/7 PASS, `assembleRelease` unsigned OK
+- **Blockers:** Live YTM + 30 min background manual QA; signed APK needs `android/signing.properties`
+- **Next session:** Manual checklists on device; keystore + signed release if distributing
 
 ```markdown
 <!-- Template for future sessions -->

@@ -4,6 +4,24 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.7.1] — 2026-07-21
+
+### Added
+
+- Harness inventory: cushion playback (Phase B) and AI DJ/BYOK (Phase C) verification tables in [docs/harness-inventory.md](docs/harness-inventory.md)
+- JVM harness headers on `CushionPlaybackControllerTest`, `PlaybackMetadataFormatterTest`
+
+### Changed
+
+- Scope banners on [README.md](README.md) and [.cursorrules](.cursorrules); [docs/architecture.md](docs/architecture.md) Roadmap status synced to v0.7.0 code state
+- [HARNESS_RULES.md](HARNESS_RULES.md) conflict priority aligned with `.cursorrules` (`project-scope.md`, `development-plan.md`)
+- [docs/release.md](docs/release.md) distribution checklist split: automated vs manual sign-off
+- Version code 6
+
+### Verified (pre-push)
+
+- Python harness 5/5, `./gradlew test`, instrumentation 7/7 (Pixel_8), `assembleRelease` (unsigned)
+
 ## [0.7.0] — 2026-07-21
 
 ### Added

@@ -78,15 +78,15 @@ android/             Production Kotlin app → APK
 
 ## Roadmap
 
-**Active (MVP):** [development-plan.md](development-plan.md) Phase A–E.
+**Active (MVP v0.7.1):** [development-plan.md](development-plan.md) Phase A–E.
 
-| Phase | Focus | Status |
-|-------|--------|--------|
-| A | Live YTM + search/play JS | In progress |
-| B | Cushion playback execution | Planned |
-| C | DJ radio loop | Planned |
-| D | Background + MediaSession metadata | Planned |
-| E | Release ready APK | Planned |
+| Phase | Focus | Status (v0.7.1) |
+|-------|--------|-----------------|
+| A | Live YTM + search/play JS | Code complete — live YTM manual QA pending |
+| B | Cushion playback execution | Complete |
+| C | DJ radio loop | Complete |
+| D | Background + MediaSession metadata | Code complete — 30 min background QA pending |
+| E | Release ready APK | Unsigned release built — signed APK + checklist sign-off pending |
 
 **Scaffold complete (research phases 1–3.1):** WebView, SVD, BYOK, profiles, i18n, B2B/Admin UI shells.
 

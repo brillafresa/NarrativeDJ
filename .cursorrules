@@ -1,5 +1,8 @@
 # NarrativeDJ — Cursor AI Rules
 
+> **Scope:** Implement [docs/project-scope.md](docs/project-scope.md) (personal BYOK Android MVP).
+> [docs/research.md](docs/research.md) is full vision — not all features are in scope.
+
 ## Architecture A (mandatory)
 
 - Client-centric BYOK (Bring Your Own Key); no provider server for LLM/TTS or music streaming.

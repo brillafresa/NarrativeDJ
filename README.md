@@ -1,5 +1,8 @@
 # NarrativeDJ
 
+> **Scope:** This repository implements **personal BYOK Android MVP** only.
+> Full product vision: [docs/research.md](docs/research.md). **Implemented scope:** [docs/project-scope.md](docs/project-scope.md) (read first).
+
 Audio-first AI narrative radio DJ — client-centric BYOK Android app with cushion (bridge) song scheduling.
 
 **Default language:** Korean (English available in app settings).
@@ -7,9 +10,10 @@ Audio-first AI narrative radio DJ — client-centric BYOK Android app with cushi
 ## Repository structure
 
 ```
-docs/research.md    Source of Truth (full research report)
-harness/            Python algorithm verification harness
-android/            Kotlin Android app (deployable APK)
+docs/project-scope.md   Repository goal scope (read first)
+docs/research.md        Full product vision (partial adoption)
+harness/                Python algorithm verification harness
+android/                Kotlin Android app (deployable APK)
 ```
 
 ## Prerequisites

@@ -1,4 +1,10 @@
-"""Resolve Android SDK paths and emulator/adb binaries for local harness scripts."""
+"""
+Resolve Android SDK / AVD paths for local harness scripts.
+
+Purpose: Shared module for ensure_emulator.py and run_instrumentation.py.
+Run: imported by other harness/scripts/*.py (not invoked directly).
+Config: harness/config/emulator.json; optional harness/config/emulator.local.json (gitignored).
+"""
 
 from __future__ import annotations
 

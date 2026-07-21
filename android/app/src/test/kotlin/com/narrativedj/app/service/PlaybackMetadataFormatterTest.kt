@@ -1,5 +1,9 @@
 package com.narrativedj.app.service
 
+/**
+ * JVM harness: notification / MediaSession now-playing label formatting (Phase D).
+ * Run: cd android && ./gradlew test --tests com.narrativedj.app.service.PlaybackMetadataFormatterTest
+ */
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

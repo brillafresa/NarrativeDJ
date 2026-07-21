@@ -74,8 +74,10 @@ When context conflicts:
 
 1. **Working source code** (tests passing)
 2. **`.cursorrules`** and **this file**
-3. **`docs/research.md`**
-4. **`docs/architecture.md` / `docs/features.md`**
+3. **`docs/project-scope.md`** (repository goal scope)
+4. **`docs/development-plan.md`**
+5. **`docs/research.md`** (full vision — partial adoption only)
+6. **`docs/architecture.md` / `docs/features.md`**
 
 ## Changelog
 
