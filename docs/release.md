@@ -1,5 +1,18 @@
 # Release build & distribution
 
+## Download latest APK
+
+Prebuilt **debug** APK for personal sideload / emulator (not Play Store):
+
+- **v0.9.0:** [NarrativeDJ-0.9.0-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.0-debug.apk)
+- Catalog: [dist/README.md](../dist/README.md)
+
+```bash
+adb install -r dist/NarrativeDJ-0.9.0-debug.apk
+```
+
+Signed production APKs are not published in-repo; configure a local keystore below.
+
 ## Prerequisites
 
 - JDK 17, Android SDK 34 (see [README.md](../README.md))
@@ -50,7 +63,8 @@ If `signing.properties` is missing, `assembleRelease` builds an **unsigned** APK
 
 **Release build:**
 
-- [ ] `./gradlew assembleRelease` succeeds (unsigned without `signing.properties`)
+- [x] `./gradlew assembleDebug` → published under `dist/NarrativeDJ-0.9.0-debug.apk`
+- [x] `./gradlew assembleRelease` succeeds (unsigned without `signing.properties`)
 - [ ] Signed release APK (`android/signing.properties` + local keystore)
 
 **Manual sign-off (required for Release Ready):**

@@ -37,6 +37,7 @@ All notable changes to this project are documented here.
 ### Verified (pre-push)
 
 - Python harness 6/6, `./gradlew test` PASS
+- Debug APK published: [`dist/NarrativeDJ-0.9.0-debug.apk`](dist/NarrativeDJ-0.9.0-debug.apk)
 
 ## [0.8.1] — 2026-07-21
 
