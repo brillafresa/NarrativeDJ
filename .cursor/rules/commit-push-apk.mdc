@@ -1,0 +1,25 @@
+---
+description: On every commit+push, rebuild APK and update GitHub download links
+alwaysApply: true
+---
+
+# Commit/push: publish APK download
+
+Whenever the user asks to **commit and push** (or a diff-tab commit-and-push), after a successful commit and **before or with** the push that ships the artifact:
+
+1. Rebuild a fresh installable debug APK:
+   ```bash
+   cd android && ./gradlew assembleDebug
+   ```
+2. Copy to versioned path under `dist/`:
+   - `dist/NarrativeDJ-<versionName>-debug.apk`
+   - Read `versionName` from `android/app/build.gradle.kts`
+3. Update download links in:
+   - `README.md` (Download APK section)
+   - `docs/release.md`
+   - `dist/README.md`
+   - Link form: `https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-<version>-debug.apk`
+4. Include the APK + doc link updates in the **same push** (second commit is OK if the first commit already pushed — then commit docs+APK and push again).
+5. Do **not** commit `android/app/build/` or secrets (`local.properties`, `signing.properties`, keystores).
+
+Until a signed release keystore is configured, publish **debug** APKs only and label them as sideload/debug in docs.

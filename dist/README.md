@@ -26,4 +26,7 @@ Or download the file on the phone and open it (allow install from unknown source
 cd android
 ./gradlew assembleDebug
 # output: app/build/outputs/apk/debug/app-debug.apk
+# copy → dist/NarrativeDJ-<versionName>-debug.apk and update README / docs/release.md links
 ```
+
+On every commit+push, agents must refresh this APK and the GitHub raw download links (`.cursor/rules/commit-push-apk.mdc`).

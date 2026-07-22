@@ -11,6 +11,8 @@ Prebuilt **debug** APK for personal sideload / emulator (not Play Store):
 adb install -r dist/NarrativeDJ-0.9.0-debug.apk
 ```
 
+**Agent / maintainer rule:** on every **commit + push**, rebuild `assembleDebug`, copy to `dist/NarrativeDJ-<versionName>-debug.apk`, and refresh links in `README.md`, this file, and `dist/README.md` (see `.cursor/rules/commit-push-apk.mdc`).
+
 Signed production APKs are not published in-repo; configure a local keystore below.
 
 ## Prerequisites
