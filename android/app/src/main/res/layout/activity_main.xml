@@ -25,16 +25,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <Spinner
-            android:id="@+id/profileSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
         <EditText
             android:id="@+id/storyInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
             android:background="#FF2A2A2A"
             android:gravity="top|start"
             android:hint="@string/story_hint"

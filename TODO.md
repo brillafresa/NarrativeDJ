@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.8.1` — Radio messenger UX (manual YTM QA pending)
+**Current release:** `0.9.0` — Gemini-only BYOK + radio queue policy (live YTM QA pending)
 
 ## Scaffold complete (not E2E)
 
@@ -10,37 +10,40 @@
 - [x] Phase 2 scaffold: Background service, LLM/TTS, ducking, cushion planner
 - [x] Phase 3 scaffold: B2B/Admin UI (frozen — see Deferred)
 - [x] Harness boundary + emulator harness (`ensure_emulator.py`, Pixel_8)
-- [x] Korean-first i18n + chat-style story input
+- [x] Korean-first i18n (system locale; no in-app language menu)
 - [x] Scope docs: `project-scope.md`, `development-plan.md`
 
 ## In scope — MVP feature completion
 
-### Phase F — Radio messenger UX (v0.8.0)
+### Phase F — Radio messenger UX (v0.8.0 → v0.9.0)
 
 - [x] Single ▶ send control (Plan/Play/DJ removed)
-- [x] LLM/local request parser → candidate pool + listener memory
-- [x] RadioScheduler + auto play + cushion + 20-track history
+- [x] Gemini request parser → candidate pool + listener memory (no local production fallback)
+- [x] RadioScheduler + auto play; cushion bridges verified in harness (runtime = direct `search_query`)
+- [x] Queue-after-current policy (`RadioPlaybackPolicy`) — do not interrupt playing track
 - [x] DJ interstitial (random 1–2 songs) with substitute/chat context
-- [x] YTM login redirect to music.youtube.com
-- [ ] Live YTM manual QA with new send flow
+- [x] YTM login redirect narrowed (auth URLs allowed)
+- [x] Gemini key gate (launcher) — app unusable without key
+- [ ] Live YTM manual QA with send + queue-after-current flow
 
 ### Phase A — Live YTM + WebView control
 
-- [x] `ytm-controller.js` search/play API
-- [x] Instrumentation test for search/play on fixture
+- [x] `ytm-controller.js` search/play API (URL search + Songs preference)
+- [x] Instrumentation test for search/play on fixture (+ `ytm-search-fixture.html`)
 - [ ] Live YTM manual QA sign-off ([webview_poc_checklist.md](harness/docs/webview_poc_checklist.md))
 
 ### Phase B — Cushion playback
 
-- [x] `CushionPlaybackController` + catalog `search_query`
-- [x] Auto cushion via `RadioScheduler` + `RadioSessionController` (Plan/Execute UI removed in v0.8.0)
+- [x] `CushionPlaybackController` + catalog `search_query` (harness/JVM)
+- [x] Algorithm parity: `test_cushion_router.py` ↔ `CushionMusicSchedulerTest`
 - [x] Harness: `mock_cushion_playback.json` + unit test
+- [x] Runtime radio path uses direct YTM `search_query` (demo catalog **not** loaded)
 
 ### Phase C — DJ radio loop
 
-- [x] OpenAI TTS via Web Audio `playSpeechBuffer`
-- [x] Transition ments between tracks (`runTransitionMent`, not send-triggered)
-- [x] Substitute apology + chat memory in DJ fallback
+- [x] Transition ments via Gemini (`GeminiApi` / `gemini-3.5-flash`) + Android TTS
+- [x] Ducking via `audio-ducking.js` GainNode
+- [x] Substitute apology + chat memory in DJ fallback scripts (harness-validated)
 
 ### Phase D — Background + MediaSession
 
@@ -50,8 +53,8 @@
 
 ### Phase E — Release ready
 
-- [x] Version 0.7.0 bump
-- [x] Unsigned release APK (`assembleRelease` — local test build)
+- [x] Version 0.9.0 bump
+- [x] Unsigned release APK path (`assembleRelease` — local test build)
 - [ ] Signed release APK (local keystore — see [release.md](docs/release.md))
 - [ ] Full release checklist manual sign-off ([release.md](docs/release.md))
 
@@ -63,10 +66,17 @@ Do not implement unless [project-scope.md](docs/project-scope.md) is revised.
 - [ ] GPS-based commercial venue detection
 - [ ] Admin console write/edit + Korean admin HTML
 - [ ] `SchedulePlanner` runtime auto profile switch
+- [ ] Runtime space-profile spinner / demo-catalog routing
+- [ ] OpenAI LLM/TTS BYOK (removed — Gemini-only)
 - [ ] CI/CD release pipeline with signing secrets
 - [ ] Full CI emulator matrix API 26–34
 - [ ] Desktop client
 - [ ] Weather/Time/Trend auto context (research 2.3 STAGE 1)
+
+## Known gaps (manual QA)
+
+- Queue-after-current: automated policy unit-tested; live YTM end-of-track handoff still needs manual sign-off
+- Mood/search play: prefer Songs shelf; playlist mis-clicks reduced — re-verify on device
 
 ## Pre-push verification (Harness-First)
 

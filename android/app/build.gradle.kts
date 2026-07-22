@@ -5,6 +5,13 @@ plugins {
 
 import java.util.Properties
 
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
 android {
     namespace = "com.narrativedj.app"
     compileSdk = 34
@@ -13,8 +20,8 @@ android {
         applicationId = "com.narrativedj.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "0.8.1"
+        versionCode = 9
+        versionName = "0.9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,6 +42,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "GEMINI_API_KEY",
+                "\"${localProperties.getProperty("gemini.api.key", "")}\"",
+            )
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -44,6 +58,7 @@ android {
             if (signingConfigs.findByName("release") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            buildConfigField("String", "GEMINI_API_KEY", "\"\"")
         }
     }
 
@@ -58,6 +73,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

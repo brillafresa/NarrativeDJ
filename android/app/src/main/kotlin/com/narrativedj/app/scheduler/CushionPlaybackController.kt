@@ -6,12 +6,13 @@ import android.webkit.WebView
 import org.json.JSONObject
 
 /**
- * Executes cushion bridge sequences via YTM JS search/play API.
+ * Executes YTM search/play sequences via WebView JS API.
+ * Optional [catalog] is harness-only for cushion route unit tests (buildPlayOrder).
  */
 class CushionPlaybackController(
-    private val catalog: List<CatalogTrack>,
     private val webView: WebView? = null,
     private val handler: Handler? = null,
+    private val catalog: List<CatalogTrack> = emptyList(),
     private val stepDelayMs: Long = DEFAULT_STEP_DELAY_MS,
 ) {
     fun searchQueryFor(trackId: String): String? {
@@ -79,7 +80,7 @@ class CushionPlaybackController(
     }
 
     companion object {
-        const val DEFAULT_STEP_DELAY_MS = 2_500L
+        const val DEFAULT_STEP_DELAY_MS = 8_000L
     }
 }
 

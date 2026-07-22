@@ -5,12 +5,12 @@
 
 This is the execution roadmap to reach **Release Ready** for the personal BYOK Android MVP.
 
-## Current baseline (2026-07-21)
+## Current baseline (2026-07-22)
 
 - Harness: Python 6 scripts + `./gradlew test` — **green** (instrumentation optional)
-- MVP code: Radio messenger UX (v0.8.0), YTM search/play, auto cushion scheduler, transition DJ ments
-- Release: v0.8.1; unsigned `assembleRelease` OK
-- **Remaining for Release Ready:** live YTM manual QA + 30 min background sign-off + signed APK
+- MVP code: Gemini-only BYOK key gate, radio messenger UX, queue-after-current, YTM search/play
+- Release: **v0.9.0**; unsigned `assembleRelease` OK
+- **Remaining for Release Ready:** live YTM manual QA (incl. queue handoff) + 30 min background sign-off + signed APK
 
 ## Phase overview
 
@@ -49,16 +49,17 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 **Goal:** Canon route (몽중인 → California Dreamin' → Hotel California → Sweet Child O' Mine) plays via YTM.
 
 **Deliverables:**
-- `CushionPlaybackController` — sequential `bridgeIds` + target via JS
+- `CushionPlaybackController` — sequential `bridgeIds` + target via JS (harness / future wiring)
 - `CatalogTrack.searchQuery` in catalog JSON (fallback: title)
-- UI: Plan (preview) + Execute (play route) buttons
+- Runtime radio (v0.9.0): direct YTM search from LLM `search_query` (no Plan/Execute UI)
 
 **Harness:**
 - `harness/tests/mock_cushion_playback.json` — bridge order + queries
+- `test_cushion_router.py` ↔ `CushionMusicSchedulerTest` algorithm parity
 - `CushionPlaybackControllerTest` (JVM)
 - Instrumentation: fixture search/play
 
-**Exit criteria:** Execute plays bridge sequence on fixture; planner tests green.
+**Exit criteria:** Planner/parity tests green; fixture search/play green.
 
 ---
 
@@ -67,16 +68,16 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 **Goal:** Story → LLM → TTS with unified Web Audio ducking; profile + now-playing in prompt.
 
 **Deliverables:**
-- OpenAI TTS via `NarrativeDJ.playSpeechBuffer()` (not MediaPlayer-only ducking)
-- `LlmPromptBuilder.build(..., currentTrack, targetTrack)` context
-- SSML: strip tags for Android TTS; pass through for OpenAI
-- After DJ segment: refresh cushion suggestion
+- Gemini transition ments via `DjPipeline.runTransitionMent`
+- Android TTS + `audio-ducking.js` GainNode ducking
+- SSML: strip tags for Android TTS
+- Prompt context: previous/next track + substitute/chat memory
 
 **Harness:**
-- Extend `mock_llm_response.json` / schema tests if needed
-- `DjAudioControlParserTest` SSML strip cases
+- `mock_llm_response.json` / `mock_dj_transition.json` + `test_llm_response_schema.py`
+- `DjAudioControlParserTest` SSML strip + fallback scripts
 
-**Exit criteria:** BYOK keys → story → audible ment + duck in/out + cushion hint in status.
+**Exit criteria:** Gemini key → track transition → audible ment + duck in/out.
 
 **Deferred post-MVP:** Weather/Time/Trend auto context (research 2.3 STAGE 1).
 
@@ -113,22 +114,24 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 
 ---
 
-## Phase F — Radio messenger UX (v0.8.0)
+## Phase F — Radio messenger UX (v0.8.0 → v0.9.0)
 
-**Goal:** Messenger-style ▶ Send → parse (no immediate TTS) → candidate pool → auto scheduler + transition DJ.
+**Goal:** Messenger-style ▶ Send → Gemini parse → candidate pool → queue-after-current / search → transition DJ.
 
 **Deliverables:**
 - `RadioSessionController`, `CandidatePool`, `PlayHistory`, `ListenerMemory`, `RadioScheduler`
-- `RequestParserService` + `UserRequestParser` (BYOK LLM or local fallback)
+- `RequestParserService` (Gemini-only; no production local fallback)
+- `RadioPlaybackPolicy` — defer search while a track is playing
 - `DjInterstitialGate` — random ment every 1–2 track transitions
-- Single ▶ send UI; YTM login redirect to `music.youtube.com`
+- Gemini key gate launcher; menu = API key only; system locale
+- Single ▶ send UI; YTM auth-safe redirect policy
 
 **Harness:**
 - `mock_user_request.json`, `test_user_request_schema.py`
 - `mock_dj_transition.json` (validated by `test_llm_response_schema.py`)
-- JVM: `CandidatePoolTest`, `PlayHistoryTest`, `RadioSchedulerTest`, `UserRequestParserTest`, `DjInterstitialGateTest`
+- JVM: pool/history/scheduler/parser/gate + `RadioPlaybackPolicyTest` + `YtmWebViewClientTest`
 
-**Exit criteria:** Harness green; device QA — send song/mood/chat, verify pool + auto play + transition DJ.
+**Exit criteria:** Harness green; device QA — send song/mood while playing does not interrupt; after track ends, queued item plays.
 
 ---
 
@@ -136,12 +139,12 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 
 Update this section at the end of each work session.
 
-### Session Handoff — 2026-07-21 (v0.8.1 stabilization)
+### Session Handoff — 2026-07-22 (v0.9.0 Gemini-only + queue policy)
 
-- **Last completed:** Harness cleanup, dead code removal (legacy story-segment path), docs sync, v0.8.1
-- **Harness status:** Python 6/6 PASS, `./gradlew testDebugUnitTest` PASS
-- **Blockers:** Live YTM QA with new send flow; signed APK
-- **Next session:** Device QA — send song/mood/chat, verify pool + transition DJ
+- **Last completed:** Gemini-only BYOK + key gate; menu cleanup; system locale; YTM search/play harden; queue-after-current; docs/SSOT sync; version 0.9.0
+- **Harness status:** Python 6/6 + `./gradlew test` (see CHANGELOG Verified)
+- **Blockers:** Live YTM QA for queue handoff; signed APK
+- **Next session:** Device QA — play track → send new request → confirm no interrupt → next plays after current; re-check mood search Songs preference
 
 ```markdown
 <!-- Template for future sessions -->

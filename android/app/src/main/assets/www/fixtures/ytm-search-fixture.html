@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  Harness fixture: YTM search results page for resumePendingSearch / Songs preference.
+  Purpose: instrumentation validates pending-search resume without live music.youtube.com.
+  Run: python harness/scripts/run_instrumentation.py
+       (or ./gradlew connectedDebugAndroidTest --tests *.YtmControllerFixtureTest)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YTM Search Fixture</title>
+</head>
+<body>
+  <div id="poc-search-fixture" data-testid="ytm-search-fixture">
+    <!-- Playlist/album-style row should be skipped in favor of Songs shelf. -->
+    <ytmusic-two-row-item-renderer>
+      <a href="/browse/MPREb_playlist">Rainy Day Playlist</a>
+      <button aria-label="Play playlist">Play</button>
+    </ytmusic-two-row-item-renderer>
+
+    <ytmusic-shelf-renderer>
+      <h2 id="title">Songs</h2>
+      <ytmusic-responsive-list-item-renderer>
+        <a href="/watch?v=abc123">Hotel California</a>
+        <button aria-label="Play song">Play</button>
+      </ytmusic-responsive-list-item-renderer>
+    </ytmusic-shelf-renderer>
+  </div>
+</body>
+</html>

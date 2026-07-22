@@ -1,10 +1,12 @@
 <resources>
     <string name="app_name">NarrativeDJ</string>
-    <string name="byok_settings">API 키 설정</string>
-    <string name="b2b_settings">B2B / 음원 제공</string>
-    <string name="language_settings">언어</string>
-    <string name="language_korean">한국어</string>
-    <string name="language_english">English</string>
+    <string name="gemini_key_settings">API 키 설정</string>
+    <string name="gemini_key_gate_title">Gemini API 키 필요</string>
+    <string name="gemini_key_gate_message">NarrativeDJ는 Gemini API로 요청을 해석합니다. Google AI Studio에서 발급한 API 키를 입력해 주세요.</string>
+    <string name="gemini_key_gate_continue">시작하기</string>
+    <string name="gemini_key_required">Gemini API 키를 입력해 주세요.</string>
+    <string name="provider_ytm">YouTube Music</string>
+    <string name="status_parse_error">요청 해석 실패: %1$s</string>
     <string name="admin_console_title">관리 콘솔</string>
     <string name="admin_summary">%1$d개 지점 관리 중</string>
     <string name="admin_summary_error">기본 일정을 불러올 수 없습니다</string>
@@ -15,6 +17,7 @@
     <string name="status_mood_queued">분위기 후보 %1$d곡 추가 (풀 %2$d곡)</string>
     <string name="status_chat_noted">메시지 기억했어요 (풀 %1$d곡)</string>
     <string name="status_scheduled_play">재생 예약: %1$s</string>
+    <string name="status_queued_after_current">현재 곡 다음에 재생 대기 (풀 %1$d곡)</string>
     <string name="status_now_playing_query">재생: %1$s</string>
     <string name="status_nothing_to_play">재생할 후보가 없습니다</string>
     <string name="status_pool_size">풀 %1$d곡</string>
@@ -22,7 +25,6 @@
     <string name="profile_label">공간 프로필</string>
     <string name="save_keys">저장</string>
     <string name="gemini_key_hint">Gemini API 키</string>
-    <string name="openai_key_hint">OpenAI API 키</string>
     <string name="b2b_license_hint">B2B 라이선스 키 (b2b-…)</string>
     <string name="b2b_partner_url_hint">파트너 API URL (선택)</string>
     <string name="venue_personal">개인 공간</string>
@@ -39,8 +41,8 @@
     <string name="status_keys_saved">API 키가 저장되었습니다 (암호화).</string>
     <string name="status_keys_cleared">API 키가 삭제되었습니다.</string>
     <string name="status_b2b_saved">B2B 설정 저장 — %1$s</string>
-    <string name="status_now_playing">[%1$s] %2$s</string>
-    <string name="status_page_ready">%1$s — %2$s — %3$s</string>
+    <string name="status_now_playing">%1$s</string>
+    <string name="status_page_ready">%1$s — %2$s</string>
     <string name="dj_generating">DJ 멘트 생성 중…</string>
     <string name="dj_line_prefix">DJ: %1$s</string>
     <string name="dj_error">DJ 오류: %1$s</string>

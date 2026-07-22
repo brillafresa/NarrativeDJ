@@ -4,6 +4,40 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-07-22
+
+### Added
+
+- **Gemini key gate:** `GeminiKeyGateActivity` is the launcher — app cannot proceed without a Gemini API key
+- **Gemini-only BYOK:** `SecureKeyStore` / `GeminiApi` (`gemini-3.5-flash`); OpenAI LLM/TTS clients removed
+- **Queue-after-current:** `RadioPlaybackPolicy` defers `searchAndPlay` while a track is playing
+- **YTM search resume harness:** `assets/www/fixtures/ytm-search-fixture.html` + instrumentation coverage
+- **Login redirect fix:** `YtmWebViewClient` allows Google/YouTube auth URLs; redirects only post-login landings
+- JVM: `GeminiApiTest`, `RadioPlaybackPolicyTest`, `YtmWebViewClientTest`
+
+### Changed
+
+- Menu: **API 키 설정** only (language / B2B / Admin removed from UI)
+- Locale: follows **system language** (no in-app language switch)
+- Runtime radio: direct YTM `search_query` only (demo catalog / cushion bridges not loaded at runtime)
+- Request parse: Gemini required — no local-parser production fallback
+- DJ ments: Gemini + Android TTS only
+- Docs / SSOT synced: `.cursorrules`, `HARNESS_RULES.md`, harness inventory, project scope
+- Version code 9
+
+### Harness verification (this release)
+
+| Check | Result |
+|-------|--------|
+| Cushion algorithm | `test_cushion_router.py` + `CushionMusicSchedulerTest` |
+| AI DJ schema | `test_llm_response_schema.py` (`mock_llm_response`, `mock_dj_transition`) |
+| Radio request schema | `test_user_request_schema.py` + `UserRequestParserTest` |
+| Selector / B2B / release | remaining Python scripts + `./gradlew test` |
+
+### Verified (pre-push)
+
+- Python harness 6/6, `./gradlew test` PASS
+
 ## [0.8.1] — 2026-07-21
 
 ### Changed

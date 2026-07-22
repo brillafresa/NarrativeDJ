@@ -5,7 +5,7 @@ import com.narrativedj.app.radio.UserRequestParseResult
 import com.narrativedj.app.radio.UserRequestParser
 
 data class DjTransitionContext(
-    val profileLabel: String,
+    val channelName: String,
     val language: AppLanguage,
     val previousTrackTitle: String?,
     val nextTrackTitle: String?,
@@ -26,7 +26,7 @@ object DjTransitionPromptBuilder {
         }
         return when (context.language) {
             AppLanguage.KOREAN -> """
-                당신은 '${context.profileLabel}' 공간의 라디오 DJ입니다.
+                당신은 ${context.channelName} 라디오 DJ입니다.
                 방금 재생: ${context.previousTrackTitle ?: "없음"}
                 다음 재생: ${context.nextTrackTitle ?: context.nextSearchQuery ?: "알 수 없음"}
                 ${if (substituteLine.isNotBlank()) "대체 안내: $substituteLine" else ""}
@@ -38,7 +38,7 @@ object DjTransitionPromptBuilder {
                 이전 곡과 다음 곡을 자연스럽게 연결. 대체곡이면 사과 포함. 청취자 잡담이 있으면 가볍게 언급.
             """.trimIndent()
             AppLanguage.ENGLISH -> """
-                You are a radio DJ for ${context.profileLabel}.
+                You are the radio DJ for ${context.channelName}.
                 Previous: ${context.previousTrackTitle ?: "none"}
                 Up next: ${context.nextTrackTitle ?: context.nextSearchQuery ?: "unknown"}
                 ${if (substituteLine.isNotBlank()) "Substitute note: $substituteLine" else ""}

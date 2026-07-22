@@ -3,11 +3,13 @@ package com.narrativedj.app.scheduler
 import android.content.Context
 
 /**
- * Loads bundled demo track catalog for MVP cushion routing.
- * SSOT fixture: harness/tests/mock_tracks.json (sync content to assets/catalog/demo_tracks.json).
+ * Parses harness fixture track catalog JSON.
+ * SSOT: harness/tests/mock_tracks.json — not loaded at app runtime.
  */
 object TrackCatalogLoader {
-    const val DEMO_CATALOG_ASSET = "catalog/demo_tracks.json"
+    const val HARNESS_CATALOG_ASSET = "catalog/demo_tracks.json"
+    /** @deprecated use [HARNESS_CATALOG_ASSET]; kept for harness sync path name. */
+    const val DEMO_CATALOG_ASSET = HARNESS_CATALOG_ASSET
 
     fun load(context: Context, assetPath: String = DEMO_CATALOG_ASSET): List<CatalogTrack> {
         val jsonText = context.assets.open(assetPath).bufferedReader().use { it.readText() }

@@ -33,4 +33,12 @@ data class UserRequestParseResult(
             )
         }
     }
+
+    /** True when the parser produced enough data to queue playback (or intentional chat-only). */
+    fun isComplete(): Boolean {
+        return when (intent) {
+            UserRequestIntent.CHAT_ONLY -> true
+            else -> tracks.isNotEmpty()
+        }
+    }
 }

@@ -3,15 +3,11 @@ package com.narrativedj.app.dj
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.util.Base64
 import android.webkit.WebView
 import com.narrativedj.app.R
 import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.byok.llm.DjTransitionContext
 import com.narrativedj.app.byok.llm.GeminiLlmClient
-import com.narrativedj.app.byok.llm.LlmClient
-import com.narrativedj.app.byok.llm.OpenAiLlmClient
-import com.narrativedj.app.byok.tts.OpenAiTtsClient
 import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +24,6 @@ class DjPipeline(
 ) {
     private var tts: TextToSpeech? = null
     private var segmentCompleteListener: (() -> Unit)? = null
-    private var awaitingWebSpeechEnd = false
 
     fun bindTts(engine: TextToSpeech) {
         tts = engine
@@ -55,11 +50,8 @@ class DjPipeline(
         segmentCompleteListener = listener
     }
 
-    fun onBridgeEvent(event: String) {
-        if (event == "speech_ended" && awaitingWebSpeechEnd) {
-            awaitingWebSpeechEnd = false
-            notifySegmentComplete()
-        }
+    fun onBridgeEvent(@Suppress("UNUSED_PARAMETER") event: String) {
+        // Reserved for Web Audio speech_ended; production TTS is Android TTS only.
     }
 
     fun applyTtsLocale(engine: TextToSpeech) {
@@ -68,11 +60,6 @@ class DjPipeline(
             AppLanguage.ENGLISH -> Locale.US
         }
         engine.language = locale
-    }
-
-    fun isByokConfigured(): Boolean {
-        return keyStore.hasApiKey(SecureKeyStore.Provider.GEMINI) ||
-            keyStore.hasApiKey(SecureKeyStore.Provider.OPENAI)
     }
 
     fun runTransitionMent(
@@ -108,29 +95,7 @@ class DjPipeline(
         val spoken = DjAudioControlParser.spokenText(control)
         val segment = control.copy(script = spoken)
         duck(segment.duckingVolume, segment.rampInSeconds)
-        val openAiKey = keyStore.getApiKey(SecureKeyStore.Provider.OPENAI)
-        if (!openAiKey.isNullOrBlank()) {
-            try {
-                val audio = OpenAiTtsClient(openAiKey).synthesize(spoken, "alloy")
-                if (playOpenAiTtsViaWebAudio(audio, segment)) return
-            } catch (_: Exception) {
-                // fall through to Android TTS
-            }
-        }
         playAndroidTts(segment)
-    }
-
-    private suspend fun playOpenAiTtsViaWebAudio(audio: ByteArray, control: DjAudioControl): Boolean {
-        val webView = webViewProvider() ?: return false
-        return withContext(Dispatchers.Main) {
-            awaitingWebSpeechEnd = true
-            val b64 = Base64.encodeToString(audio, Base64.NO_WRAP)
-            webView.evaluateJavascript(
-                "NarrativeDJ.playSpeechBufferFromBase64('$b64', ${control.rampInSeconds}, ${control.rampOutSeconds});",
-                null,
-            )
-            true
-        }
     }
 
     private suspend fun playAndroidTts(control: DjAudioControl) {
@@ -162,22 +127,10 @@ class DjPipeline(
         segmentCompleteListener?.invoke()
     }
 
-    private fun resolveLlmClient(): LlmClient? {
-        keyStore.getApiKey(SecureKeyStore.Provider.GEMINI)?.let { return GeminiLlmClient(it) }
-        keyStore.getApiKey(SecureKeyStore.Provider.OPENAI)?.let { return OpenAiLlmClient(it) }
-        return null
-    }
-
     private suspend fun resolveTransitionControl(context: DjTransitionContext): DjAudioControl {
-        val client = resolveLlmClient()
-        if (client != null) {
-            try {
-                return client.generateTransitionMent(context)
-            } catch (_: Exception) {
-                // fall through
-            }
-        }
-        return DjAudioControlParser.fallbackForTransition(context)
+        val apiKey = keyStore.getGeminiApiKey()
+            ?: throw IllegalStateException("Gemini API key required")
+        return GeminiLlmClient(apiKey).generateTransitionMent(context)
     }
 
     private fun estimateSpeechMs(script: String): Long {

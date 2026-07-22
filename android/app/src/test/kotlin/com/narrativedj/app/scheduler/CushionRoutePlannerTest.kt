@@ -1,8 +1,5 @@
 package com.narrativedj.app.scheduler
 
-import com.narrativedj.app.R
-import com.narrativedj.app.profile.SpaceProfile
-import com.narrativedj.app.profile.SpaceProfiles
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -37,25 +34,16 @@ class CushionRoutePlannerTest {
 
     @Test
     fun planRoute_canonicalTwoBridgePath() {
-        val wideProfile = SpaceProfile(
-            id = "harness_wide",
-            labelResId = R.string.profile_cozy_brunch,
-            bpmMin = 0,
-            bpmMax = 999,
-            energyMin = 0.0,
-            energyMax = 1.0,
-            mood = "Test",
-        )
         val plan = requireNotNull(
-            planner.planRoute("mongjungin", "sweet_child", wideProfile),
+            planner.planRoute("mongjungin", "sweet_child"),
         )
         assertEquals(listOf("california_dreamin", "hotel_california"), plan.bridgeIds)
         assertEquals(false, plan.dropped)
     }
 
     @Test
-    fun suggestTarget_returnsProfileCompatibleTrack() {
-        val target = planner.suggestTarget("mongjungin", SpaceProfiles.analogLpBar)
+    fun suggestTarget_returnsCompatibleTrack() {
+        val target = planner.suggestTarget("mongjungin")
         assertNotNull(target)
     }
 

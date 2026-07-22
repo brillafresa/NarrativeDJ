@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/action_language_settings"
-        android:title="@string/language_settings"
-        android:showAsAction="never" />
-    <item
-        android:id="@+id/action_byok_settings"
-        android:title="@string/byok_settings"
-        android:showAsAction="never" />
-    <item
-        android:id="@+id/action_b2b_settings"
-        android:title="@string/b2b_settings"
-        android:showAsAction="never" />
-    <item
-        android:id="@+id/action_admin_console"
-        android:title="@string/admin_console_title"
+        android:id="@+id/action_gemini_key_settings"
+        android:title="@string/gemini_key_settings"
         android:showAsAction="never" />
 </menu>

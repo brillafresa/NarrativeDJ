@@ -1,3 +1,5 @@
-## sdk.dir
-# Copy to local.properties and set your Android Studio SDK path, e.g.:
+## Copy to local.properties (gitignored). Never commit real API keys.
 sdk.dir=C\:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
+
+# Optional — debug builds auto-seed SecureKeyStore on first launch
+gemini.api.key=

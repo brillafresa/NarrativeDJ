@@ -5,15 +5,16 @@ import com.narrativedj.app.R
 import com.narrativedj.app.byok.llm.DjTransitionContext
 import com.narrativedj.app.dj.DjPipeline
 import com.narrativedj.app.locale.AppLanguage
-import com.narrativedj.app.profile.SpaceProfile
-import com.narrativedj.app.scheduler.CatalogTrack
 import com.narrativedj.app.scheduler.CushionPlaybackController
-import com.narrativedj.app.scheduler.CushionRoutePlanner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
  * Orchestrates messenger send → pool → auto scheduling → DJ interstitials.
+ * Playback: user text → YTM search_query (no bundled demo catalog).
+ *
+ * While a track is actively playing, new requests stay in the candidate pool
+ * and only start after the current track changes (or playback is idle).
  */
 class RadioSessionController(
     private val context: Context,
@@ -22,8 +23,6 @@ class RadioSessionController(
     private val scheduler: RadioScheduler,
     private val cushionPlayback: CushionPlaybackController,
     private val djPipeline: DjPipeline,
-    private val catalog: List<CatalogTrack>,
-    private val planner: CushionRoutePlanner,
     private val languageProvider: () -> AppLanguage,
     private val onStatus: (String) -> Unit,
 ) {
@@ -32,37 +31,46 @@ class RadioSessionController(
     val listenerMemory = ListenerMemory()
     private val djGate = DjInterstitialGate()
 
-    private var currentTrackId: String? = null
+    private var currentTrackKey: String? = null
     private var currentTrackTitle: String? = null
     private var lastNowPlayingKey: String? = null
     private var pendingEntry: CandidateEntry? = null
     private var isPlayingSequence = false
-    private var selectedProfile: SpaceProfile = com.narrativedj.app.profile.SpaceProfiles.cozyBrunchCafe
+    private var isNowPlaying = false
 
-    fun setProfile(profile: SpaceProfile) {
-        selectedProfile = profile
-    }
-
-    fun updateNowPlaying(title: String?, artist: String?) {
+    fun updateNowPlaying(title: String?, artist: String?, isPlaying: Boolean = false) {
         val label = listOfNotNull(title, artist).joinToString(" — ").ifBlank { null }
-        if (label == null) return
+        if (label == null) {
+            isNowPlaying = false
+            return
+        }
 
-        val resolvedId = planner.resolveTrackId(title)
-        val playKey = resolvedId ?: CandidateEntry.normalizeKey(label)
+        val playKey = CandidateEntry.normalizeKey(label)
+        val wasPlaying = isNowPlaying
+        isNowPlaying = isPlaying
 
         if (lastNowPlayingKey != null && lastNowPlayingKey != playKey && !isPlayingSequence) {
             onTrackTransition(
                 previousTitle = currentTrackTitle,
-                previousId = currentTrackId,
                 previousKey = lastNowPlayingKey!!,
                 newTitle = title,
-                newId = resolvedId,
+                newKey = playKey,
             )
+        } else if (pendingEntry != null && isPlaying) {
+            // First track after our search started — mark session as occupied.
+            currentTrackKey = playKey
+            currentTrackTitle = title
+            pendingEntry = null
         }
 
         lastNowPlayingKey = playKey
         currentTrackTitle = title
-        if (resolvedId != null) currentTrackId = resolvedId
+        currentTrackKey = playKey
+
+        // Current track stopped and queue is waiting — start next (do not interrupt while playing).
+        if (wasPlaying && !isPlaying && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
+            scheduleNextIfNeeded()
+        }
     }
 
     fun handleUserSend(message: String) {
@@ -71,9 +79,13 @@ class RadioSessionController(
         scope.launch {
             onStatus(context.getString(R.string.status_parsing_request))
             val language = languageProvider()
-            val result = requestParser.parse(trimmed, selectedProfile, language)
-            applyParseResult(result)
-            scheduleNextIfNeeded()
+            try {
+                val result = requestParser.parse(trimmed, language)
+                applyParseResult(result)
+                scheduleNextIfNeeded()
+            } catch (e: Exception) {
+                onStatus(context.getString(R.string.status_parse_error, e.message ?: "unknown"))
+            }
         }
     }
 
@@ -91,21 +103,32 @@ class RadioSessionController(
     }
 
     fun scheduleNextIfNeeded() {
-        if (isPlayingSequence) return
-        if (lastNowPlayingKey != null) return
-        val decision = scheduler.pickImmediate(candidatePool, playHistory, selectedProfile) ?: run {
+        if (RadioPlaybackPolicy.shouldDeferPlayback(isPlayingSequence, pendingEntry != null, isNowPlaying)) {
+            if (!candidatePool.isEmpty() && isNowPlaying && !isPlayingSequence && pendingEntry == null) {
+                onStatus(context.getString(R.string.status_queued_after_current, candidatePool.size()))
+            }
+            return
+        }
+        if (candidatePool.isEmpty()) {
             onStatus(context.getString(R.string.status_nothing_to_play))
             return
         }
-        playDecision(decision, afterTransition = false)
+        val decision = scheduler.pickNext(
+            currentTrackKey = currentTrackKey,
+            pool = candidatePool,
+            history = playHistory,
+        ) ?: run {
+            onStatus(context.getString(R.string.status_nothing_to_play))
+            return
+        }
+        playDecision(decision, afterTransition = currentTrackKey != null)
     }
 
     private fun onTrackTransition(
         previousTitle: String?,
-        previousId: String?,
         previousKey: String,
         newTitle: String?,
-        newId: String?,
+        newKey: String,
     ) {
         playHistory.record(previousKey)
         pendingEntry?.let { candidatePool.remove(it) }
@@ -113,11 +136,11 @@ class RadioSessionController(
 
         val shouldMent = djGate.onTrackTransition()
         if (shouldMent) {
-            val nextDecision = scheduler.pickNext(newId, candidatePool, playHistory, selectedProfile)
+            val nextDecision = scheduler.pickNext(newKey, candidatePool, playHistory)
             scope.launch {
                 djPipeline.runTransitionMent(
                     transition = DjTransitionContext(
-                        profileLabel = selectedProfile.label(context),
+                        channelName = context.getString(R.string.app_name),
                         language = languageProvider(),
                         previousTrackTitle = previousTitle,
                         nextTrackTitle = nextDecision?.targetEntry?.requestedLabel
@@ -135,11 +158,13 @@ class RadioSessionController(
                 )
             }
         } else {
-            val nextDecision = scheduler.pickNext(newId, candidatePool, playHistory, selectedProfile)
-            if (nextDecision != null) playDecision(nextDecision, afterTransition = true)
+            val nextDecision = scheduler.pickNext(newKey, candidatePool, playHistory)
+            if (nextDecision != null) {
+                playDecision(nextDecision, afterTransition = true)
+            }
         }
 
-        currentTrackId = newId
+        currentTrackKey = newKey
         currentTrackTitle = newTitle
     }
 
@@ -157,7 +182,7 @@ class RadioSessionController(
             onStep = { _, query -> onStatus(context.getString(R.string.status_now_playing_query, query)) },
             onComplete = {
                 isPlayingSequence = false
-                decision.targetEntry?.catalogTrackId?.let { currentTrackId = it }
+                decision.targetEntry?.playKey()?.let { currentTrackKey = it }
                 decision.targetEntry?.requestedLabel?.let { currentTrackTitle = it }
                 if (!afterTransition) {
                     decision.targetEntry?.playKey()?.let { playHistory.record(it) }
@@ -165,8 +190,4 @@ class RadioSessionController(
             },
         )
     }
-
-    fun getCurrentTrackId(): String? = currentTrackId
 }
-
-private fun CatalogTrack.playbackQuery(): String = searchQuery?.takeIf { it.isNotBlank() } ?: title

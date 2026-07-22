@@ -1,10 +1,12 @@
 <resources>
     <string name="app_name">NarrativeDJ</string>
-    <string name="byok_settings">BYOK API Keys</string>
-    <string name="b2b_settings">B2B / Music Provider</string>
-    <string name="language_settings">Language</string>
-    <string name="language_korean">한국어</string>
-    <string name="language_english">English</string>
+    <string name="gemini_key_settings">API key settings</string>
+    <string name="gemini_key_gate_title">Gemini API key required</string>
+    <string name="gemini_key_gate_message">NarrativeDJ uses the Gemini API to interpret your requests. Enter an API key from Google AI Studio.</string>
+    <string name="gemini_key_gate_continue">Continue</string>
+    <string name="gemini_key_required">Enter your Gemini API key.</string>
+    <string name="provider_ytm">YouTube Music</string>
+    <string name="status_parse_error">Could not parse request: %1$s</string>
     <string name="admin_console_title">Admin Console</string>
     <string name="admin_summary">Managing %1$d locations</string>
     <string name="admin_summary_error">Could not load default schedule</string>
@@ -15,6 +17,7 @@
     <string name="status_mood_queued">Added %1$d mood pick(s) (pool: %2$d)</string>
     <string name="status_chat_noted">Noted your message (pool: %1$d)</string>
     <string name="status_scheduled_play">Scheduled: %1$s</string>
+    <string name="status_queued_after_current">Queued after current track (pool: %1$d)</string>
     <string name="status_now_playing_query">Playing: %1$s</string>
     <string name="status_nothing_to_play">Nothing to play</string>
     <string name="status_pool_size">Pool: %1$d</string>
@@ -22,7 +25,6 @@
     <string name="profile_label">Space profile</string>
     <string name="save_keys">Save</string>
     <string name="gemini_key_hint">Gemini API key</string>
-    <string name="openai_key_hint">OpenAI API key</string>
     <string name="b2b_license_hint">B2B license key (b2b-…)</string>
     <string name="b2b_partner_url_hint">Partner API base URL (optional)</string>
     <string name="venue_personal">Personal venue</string>
@@ -39,8 +41,8 @@
     <string name="status_keys_saved">API keys saved (encrypted).</string>
     <string name="status_keys_cleared">API keys cleared.</string>
     <string name="status_b2b_saved">B2B settings saved — %1$s</string>
-    <string name="status_now_playing">[%1$s] %2$s</string>
-    <string name="status_page_ready">%1$s — %2$s — %3$s</string>
+    <string name="status_now_playing">%1$s</string>
+    <string name="status_page_ready">%1$s — %2$s</string>
     <string name="dj_generating">Generating DJ line…</string>
     <string name="dj_line_prefix">DJ: %1$s</string>
     <string name="dj_error">DJ error: %1$s</string>

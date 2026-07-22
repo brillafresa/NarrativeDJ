@@ -1,9 +1,6 @@
 package com.narrativedj.app.radio
 
 import com.narrativedj.app.locale.AppLanguage
-import com.narrativedj.app.profile.SpaceProfile
-import com.narrativedj.app.scheduler.CatalogTrack
-import com.narrativedj.app.scheduler.CushionRoutePlanner
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -25,69 +22,44 @@ object UserRequestParser {
         return UserRequestParseResult(intent, tracks, moodHint, chatSnippet)
     }
 
-    fun parseLocal(
-        message: String,
-        catalog: List<CatalogTrack>,
-        planner: CushionRoutePlanner,
-        profile: SpaceProfile,
-        language: AppLanguage,
-    ): UserRequestParseResult {
+    /**
+     * Harness-only edge-case parser (JVM tests).
+     * Production always uses Gemini via [RequestParserService] — do not call from MainActivity.
+     */
+    fun parseLocal(message: String, language: AppLanguage): UserRequestParseResult {
         val trimmed = message.trim()
         if (trimmed.isEmpty()) {
             return UserRequestParseResult(UserRequestIntent.CHAT_ONLY)
         }
 
-        val matchedTracks = mutableListOf<ParsedTrack>()
         val lower = trimmed.lowercase()
-        for (track in catalog) {
-            if (lower.contains(track.title.lowercase())) {
-                matchedTracks.add(
-                    ParsedTrack(
-                        requestedTitle = track.title,
-                        searchQuery = track.playbackQuery(),
-                        catalogTrackId = track.id,
-                    ),
+        val isMood = MOOD_KEYWORDS.any { lower.contains(it) }
+
+        if (looksLikeSongRequest(trimmed, language) && !isMood) {
+            val directQuery = extractSearchQuery(trimmed, language)
+            if (directQuery.isNotBlank()) {
+                return UserRequestParseResult(
+                    intent = UserRequestIntent.EXPLICIT_TRACKS,
+                    tracks = listOf(ParsedTrack(requestedTitle = trimmed, searchQuery = directQuery)),
                 )
             }
-        }
-
-        val isMood = MOOD_KEYWORDS.any { lower.contains(it) }
-        if (matchedTracks.isNotEmpty()) {
-            val intent = if (isMood || trimmed.length > matchedTracks.size * 20) {
-                UserRequestIntent.MIXED
-            } else {
-                UserRequestIntent.EXPLICIT_TRACKS
-            }
-            return UserRequestParseResult(
-                intent = intent,
-                tracks = matchedTracks.distinctBy { it.searchQuery },
-                moodHint = if (isMood) trimmed else null,
-                chatSnippet = if (intent == UserRequestIntent.MIXED) trimmed else null,
-            )
         }
 
         if (isMood || looksLikeMoodRequest(trimmed, language)) {
-            val candidates = planner.profileCandidates(profile).take(3)
-            val tracks = candidates.map { track ->
-                ParsedTrack(
-                    requestedTitle = null,
-                    searchQuery = track.playbackQuery(),
-                    catalogTrackId = track.id,
-                )
-            }
+            val queries = moodSearchQueries(trimmed, language)
             return UserRequestParseResult(
                 intent = UserRequestIntent.MOOD_REQUEST,
-                tracks = tracks,
+                tracks = queries.map { ParsedTrack(requestedTitle = null, searchQuery = it) },
                 moodHint = trimmed,
             )
         }
 
         if (looksLikeSongRequest(trimmed, language)) {
-            val substitute = findSubstitute(trimmed, catalog, planner, profile, language)
-            if (substitute != null) {
+            val directQuery = extractSearchQuery(trimmed, language)
+            if (directQuery.isNotBlank()) {
                 return UserRequestParseResult(
                     intent = UserRequestIntent.EXPLICIT_TRACKS,
-                    tracks = listOf(substitute),
+                    tracks = listOf(ParsedTrack(requestedTitle = trimmed, searchQuery = directQuery)),
                 )
             }
         }
@@ -98,39 +70,38 @@ object UserRequestParser {
         )
     }
 
+    private fun moodSearchQueries(text: String, language: AppLanguage): List<String> {
+        val cleaned = extractSearchQuery(text, language).ifBlank { text.trim() }
+        return listOf(cleaned)
+    }
+
+    private fun extractSearchQuery(text: String, language: AppLanguage): String {
+        var query = text.trim()
+        val suffixes = when (language) {
+            AppLanguage.KOREAN -> listOf(
+                "틀어줘", "틀어 주세요", "들려줘", "들려 주세요", "재생해줘", "플레이해줘", "신청", "추천해줘",
+            )
+            AppLanguage.ENGLISH -> listOf("please play", "play", "put on", "queue", "recommend")
+        }
+        for (suffix in suffixes.sortedByDescending { it.length }) {
+            val pattern = Regex("${Regex.escape(suffix)}[.!?\\s]*$", RegexOption.IGNORE_CASE)
+            query = query.replace(pattern, "").trim()
+        }
+        return query.trim(' ', '.', '!', '?', '"', '\'')
+    }
+
     private fun looksLikeSongRequest(text: String, language: AppLanguage): Boolean {
         val words = when (language) {
             AppLanguage.KOREAN -> listOf("틀어", "들려", "신청", "플레이", "재생", "곡", "노래")
             AppLanguage.ENGLISH -> listOf("play", "song", "track", "request", "put on")
         }
         val lower = text.lowercase()
-        return words.any { lower.contains(it) } || text.length <= 40
-    }
-
-    private fun findSubstitute(
-        message: String,
-        catalog: List<CatalogTrack>,
-        planner: CushionRoutePlanner,
-        profile: SpaceProfile,
-        language: AppLanguage,
-    ): ParsedTrack? {
-        val suggested = planner.suggestTarget(null, profile) ?: return null
-        val note = when (language) {
-            AppLanguage.KOREAN -> "'$message'을(를) 찾지 못해 '${suggested.title}'(으)로 대체"
-            AppLanguage.ENGLISH -> "Could not find '$message'; substituting '${suggested.title}'"
-        }
-        return ParsedTrack(
-            requestedTitle = message,
-            searchQuery = suggested.playbackQuery(),
-            isSubstitute = true,
-            substituteNote = note,
-            catalogTrackId = suggested.id,
-        )
+        return words.any { lower.contains(it) } || text.length <= 48
     }
 
     private fun looksLikeMoodRequest(text: String, language: AppLanguage): Boolean {
         val requestWords = when (language) {
-            AppLanguage.KOREAN -> listOf("틀어", "들려", "추천", "분위기", "어울", "신청", "플레이")
+            AppLanguage.KOREAN -> listOf("틀어", "들려", "추천", "분위기", "어울", "신청", "플레이", "음악")
             AppLanguage.ENGLISH -> listOf("play", "recommend", "mood", "vibe", "something", "music")
         }
         val lower = text.lowercase()
@@ -159,7 +130,6 @@ object UserRequestParser {
                     searchQuery = query,
                     isSubstitute = item.optBoolean("is_substitute", false),
                     substituteNote = item.optString("substitute_note").takeIf { it.isNotBlank() },
-                    catalogTrackId = item.optString("catalog_track_id").takeIf { it.isNotBlank() },
                 ),
             )
         }
@@ -167,8 +137,8 @@ object UserRequestParser {
     }
 
     private val MOOD_KEYWORDS = listOf(
-        "비", "rain", "브런치", "brunch", "카페", "cafe", "분위기", "mood", "vibe",
-        "조용", "quiet", "신나", "energy", "우울", "sad", "행복", "happy",
+        "비", "rain", "분위기", "mood", "vibe", "조용", "quiet", "신나", "energy",
+        "우울", "sad", "행복", "happy", "잔잔", "chill", "운동", "workout",
     )
 }
 
@@ -183,5 +153,3 @@ private object LlmJsonHelper {
         return trimmed
     }
 }
-
-private fun CatalogTrack.playbackQuery(): String = searchQuery?.takeIf { it.isNotBlank() } ?: title

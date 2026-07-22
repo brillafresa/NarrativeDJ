@@ -16,26 +16,22 @@ class SecureKeyStore(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
     )
 
-    fun saveApiKey(provider: Provider, apiKey: String) {
-        prefs.edit().putString(provider.prefKey, apiKey.trim()).apply()
+    fun saveGeminiApiKey(apiKey: String) {
+        prefs.edit().putString(PREF_KEY_GEMINI, apiKey.trim()).apply()
     }
 
-    fun getApiKey(provider: Provider): String? {
-        return prefs.getString(provider.prefKey, null)?.takeIf { it.isNotBlank() }
+    fun getGeminiApiKey(): String? {
+        return prefs.getString(PREF_KEY_GEMINI, null)?.takeIf { it.isNotBlank() }
     }
 
-    fun hasApiKey(provider: Provider): Boolean = getApiKey(provider) != null
+    fun hasGeminiApiKey(): Boolean = getGeminiApiKey() != null
 
-    fun clearApiKey(provider: Provider) {
-        prefs.edit().remove(provider.prefKey).apply()
-    }
-
-    enum class Provider(val prefKey: String, val label: String) {
-        GEMINI("api_key_gemini", "Gemini"),
-        OPENAI("api_key_openai", "OpenAI"),
+    fun clearGeminiApiKey() {
+        prefs.edit().remove(PREF_KEY_GEMINI).apply()
     }
 
     companion object {
         private const val PREFS_FILE = "narrativedj_byok"
+        private const val PREF_KEY_GEMINI = "api_key_gemini"
     }
 }

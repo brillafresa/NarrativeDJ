@@ -18,20 +18,20 @@ class SecureKeyStoreTest {
     fun setUp() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         keyStore = SecureKeyStore(context)
-        keyStore.clearApiKey(SecureKeyStore.Provider.GEMINI)
+        keyStore.clearGeminiApiKey()
     }
 
     @Test
     fun saveAndLoad_roundTripsApiKey() {
-        keyStore.saveApiKey(SecureKeyStore.Provider.GEMINI, "test-key-123")
-        assertEquals("test-key-123", keyStore.getApiKey(SecureKeyStore.Provider.GEMINI))
-        assertTrue(keyStore.hasApiKey(SecureKeyStore.Provider.GEMINI))
+        keyStore.saveGeminiApiKey("test-key-123")
+        assertEquals("test-key-123", keyStore.getGeminiApiKey())
+        assertTrue(keyStore.hasGeminiApiKey())
     }
 
     @Test
     fun clearApiKey_removesValue() {
-        keyStore.saveApiKey(SecureKeyStore.Provider.OPENAI, "openai-key")
-        keyStore.clearApiKey(SecureKeyStore.Provider.OPENAI)
-        assertNull(keyStore.getApiKey(SecureKeyStore.Provider.OPENAI))
+        keyStore.saveGeminiApiKey("gemini-key")
+        keyStore.clearGeminiApiKey()
+        assertNull(keyStore.getGeminiApiKey())
     }
 }

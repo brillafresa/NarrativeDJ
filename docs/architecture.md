@@ -8,12 +8,12 @@
 | Layer | Technology |
 |-------|------------|
 | Platform | Android APK (Phase 1), Desktop later |
-| UI language | Korean default; English via `AppLocaleStore` + `values-en/` |
+| UI language | System locale → `AppLocaleStore` + `values` / `values-en` |
 | Music | In-app WebView → YouTube Music PWA |
-| Control | JS injection (play/pause, now-playing parse) |
-| AI | User Gemini/OpenAI API key on-device |
+| Control | JS injection (search/play, now-playing parse) |
+| AI | User **Gemini** API key on-device (required; key gate) |
 | Audio mix | Web Audio API GainNode ducking |
-| Keys | EncryptedSharedPreferences (`SecureKeyStore`) |
+| Keys | EncryptedSharedPreferences (`SecureKeyStore`, Gemini only) |
 
 No provider server for streaming or AI inference billing.
 
@@ -78,20 +78,20 @@ android/             Production Kotlin app → APK
 
 ## Roadmap
 
-**Active (MVP v0.8.1):** [development-plan.md](development-plan.md) Phase A–F.
+**Active (MVP v0.9.0):** [development-plan.md](development-plan.md) Phase A–F.
 
-| Phase | Focus | Status (v0.8.1) |
+| Phase | Focus | Status (v0.9.0) |
 |-------|--------|-------------------|
 | A | Live YTM + search/play JS | Code complete — live YTM manual QA pending |
-| B | Cushion playback execution | Complete |
-| C | DJ radio loop | Complete (transition ments, not send-triggered) |
+| B | Cushion algorithm parity | Harness complete; runtime = direct search_query |
+| C | DJ radio loop | Complete (Gemini + Android TTS) |
 | D | Background + MediaSession metadata | Code complete — 30 min background QA pending |
-| E | Release ready APK | Unsigned release built — signed APK pending |
-| F | Radio messenger UX | Complete — device QA pending |
+| E | Release ready APK | v0.9.0 bumped — signed APK + checklist pending |
+| F | Radio messenger UX | Gemini gate + queue-after-current — device QA pending |
 
-**Scaffold complete (research phases 1–3.1):** WebView, SVD, BYOK, profiles, i18n, B2B/Admin UI shells.
+**Scaffold complete (research phases 1–3.1):** WebView, SVD, BYOK, profiles, i18n, B2B/Admin shells (frozen, not in menu).
 
-**Deferred (out of MVP scope):** B2B streaming, admin CRUD, GPS guard, Desktop — see [project-scope.md](project-scope.md).
+**Deferred (out of MVP scope):** B2B streaming, admin CRUD, GPS guard, OpenAI BYOK, Desktop — see [project-scope.md](project-scope.md).
 
 ## Legal / risk (4.1–4.3)
 

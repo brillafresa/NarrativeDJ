@@ -39,14 +39,14 @@ CHANGELOG v0.6.0 "Phase 1–3 complete" means **Scaffold Complete**, not Feature
 
 | Area | Target |
 |------|--------|
-| Architecture A BYOK | User YT Music session + user Gemini/OpenAI keys on-device |
+| Architecture A BYOK | User YT Music session + **required Gemini** API key on-device |
 | WebView control | SVD, CSP bypass, now-playing parse, search/play JS API |
-| Cushion algorithm | Python↔Kotlin parity; **playback execution** via YTM |
-| Space profiles | Manual spinner selection; profile-filtered routing |
-| AI DJ pipeline | Transition ments (LLM+TTS) between tracks; messenger send parses requests only |
-| Radio UX | ▶ Send → candidate pool → auto scheduler + cushion |
+| Cushion algorithm | Python↔Kotlin parity in **harness**; runtime plays LLM `search_query` |
+| Space profiles | Frozen types for admin/B2B tests; **not** in MainActivity UI |
+| AI DJ pipeline | Transition ments (Gemini + Android TTS) between tracks |
+| Radio UX | ▶ Send → Gemini parse → pool → queue-after-current / search |
 | Background playback | Foreground service, wake lock, MediaSession transport + metadata |
-| i18n | Korean default; English optional |
+| i18n | System locale (KO/EN resources); no in-app language menu |
 | Release | Signed APK path, CI harness verification |
 
 ## Partial (MVP subset of research)
@@ -62,9 +62,10 @@ CHANGELOG v0.6.0 "Phase 1–3 complete" means **Scaffold Complete**, not Feature
 | Feature | Notes |
 |---------|-------|
 | B2B partner streaming | HTTP client + mock exist; **frozen** — no ExoPlayer, no live API |
-| Admin console CRUD | Read-only HTML viewer; **frozen** |
+| Admin console CRUD | Read-only HTML viewer; **frozen** (not in production menu) |
 | `SchedulePlanner` runtime | Unit tests only; not wired to MainActivity |
-| GPS commercial guard | Manual venue toggle only; no location APIs |
+| GPS commercial guard | Scaffold only; no location APIs |
+| OpenAI BYOK | Removed in v0.9.0 — Gemini-only |
 | CI release signing job | Optional post-MVP |
 
 ## Out of Scope

@@ -5,8 +5,6 @@ package com.narrativedj.app.scheduler
  * Fixture: src/test/resources/mock_tracks.json + harness/tests/mock_cushion_playback.json (canonical order)
  * Run: cd android && ./gradlew test --tests com.narrativedj.app.scheduler.CushionPlaybackControllerTest
  */
-import com.narrativedj.app.R
-import com.narrativedj.app.profile.SpaceProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -17,16 +15,6 @@ class CushionPlaybackControllerTest {
 
     private lateinit var catalog: List<CatalogTrack>
     private lateinit var planner: CushionRoutePlanner
-
-    private val wideProfile = SpaceProfile(
-        id = "harness_wide",
-        labelResId = R.string.profile_cozy_brunch,
-        bpmMin = 0,
-        bpmMax = 999,
-        energyMin = 0.0,
-        energyMax = 1.0,
-        mood = "Test",
-    )
 
     @Before
     fun setUp() {
@@ -49,7 +37,7 @@ class CushionPlaybackControllerTest {
     @Test
     fun buildPlayOrder_canonicalTwoBridgeRoute() {
         val plan = requireNotNull(
-            planner.planRoute("mongjungin", "sweet_child", wideProfile),
+            planner.planRoute("mongjungin", "sweet_child"),
         )
         assertEquals(listOf("california_dreamin", "hotel_california"), plan.bridgeIds)
 

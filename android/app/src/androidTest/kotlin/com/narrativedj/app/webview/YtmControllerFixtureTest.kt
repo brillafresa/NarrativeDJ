@@ -88,6 +88,36 @@ class YtmControllerFixtureTest {
         assertEquals("Hotel California", requireNotNull(parsed).title)
     }
 
+    @Test
+    fun searchFixture_resumePendingSearch_clicksFirstResult() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val latch = CountDownLatch(1)
+        var resumeResult: String? = null
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val webView = WebView(context)
+            webView.settings.javaScriptEnabled = true
+            webView.settings.domStorageEnabled = true
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    YtmAssetInjector.inject(webView, context) {
+                        webView.evaluateJavascript(
+                            "sessionStorage.setItem('ndj_pending_search', 'Hotel California');" +
+                                "NarrativeDJYtm.onPageReady();",
+                        ) { rawJson ->
+                            resumeResult = unquoteJsString(rawJson)
+                            latch.countDown()
+                        }
+                    }
+                }
+            }
+            webView.loadUrl("file:///android_asset/www/fixtures/ytm-search-fixture.html")
+        }
+
+        assertTrue("Search resume harness timed out", latch.await(15, TimeUnit.SECONDS))
+        assertTrue(requireNotNull(resumeResult).contains("resume_started"))
+    }
+
     private fun unquoteJsString(evalResult: String?): String {
         if (evalResult == null || evalResult == "null") return "null"
         return evalResult.trim().removeSurrounding("\"")

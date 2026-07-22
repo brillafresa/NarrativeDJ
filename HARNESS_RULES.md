@@ -33,9 +33,9 @@ Local default AVD: **Pixel_8** (`harness/config/emulator.json`). If no device is
 
 ## i18n
 
-- Default UI language: **Korean** (`values/strings.xml`)
-- English: `values-en/strings.xml`, switch via app menu **언어 / Language**
-- DJ LLM prompts and Android TTS follow the selected locale
+- UI strings: Korean (`values/strings.xml`) + English (`values-en/strings.xml`)
+- **No in-app language menu** — follows the **device system locale** (`AppLocaleStore.getLanguage`)
+- DJ LLM prompts and Android TTS follow the resolved system language
 
 Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 
@@ -57,10 +57,10 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 ## Production–harness boundary
 
 - Do **not** add `mock_*` filenames under `android/app/src/main/`.
-- Demo catalog: `assets/catalog/demo_tracks.json` (from SSOT `mock_tracks.json`).
-- Admin demo schedule: `assets/admin/default_schedule.json`.
+- Demo catalog: `assets/catalog/demo_tracks.json` (harness sync from `mock_tracks.json`; **not loaded at app runtime** — cushion parity is harness/JVM only).
+- Admin demo schedule: `assets/admin/default_schedule.json` (frozen B2B/Admin scaffold).
 - WebView DOM fixtures: `assets/www/fixtures/` (instrumentation only).
-- BYOK keys and B2B licenses: encrypted local storage only; never commit secrets.
+- BYOK: **Gemini API key only** in `SecureKeyStore`; never commit secrets. Debug builds may seed from `local.properties` `gemini.api.key` via `DebugByokSeeder`.
 
 ## Algorithm parity
 
@@ -68,6 +68,16 @@ Cushion scheduler changes must pass:
 
 - `harness/scripts/test_cushion_router.py` (Python)
 - `android/.../CushionMusicSchedulerTest.kt` (Kotlin)
+
+AI DJ transition schema changes must pass:
+
+- `harness/scripts/test_llm_response_schema.py` (`mock_llm_response.json`, `mock_dj_transition.json`)
+- `DjAudioControlParserTest` / `LlmResponseExtractorTest` (JVM)
+
+Radio request schema changes must pass:
+
+- `harness/scripts/test_user_request_schema.py`
+- `UserRequestParserTest` (JVM; includes `parseLocal` edge cases — **not** a production fallback)
 
 ## Source of truth priority
 

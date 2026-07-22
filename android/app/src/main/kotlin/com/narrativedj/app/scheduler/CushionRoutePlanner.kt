@@ -51,24 +51,13 @@ class CushionRoutePlanner(
         return titleIndex[normalizeTitle(title)]
     }
 
-    fun profileCandidates(profile: com.narrativedj.app.profile.SpaceProfile): List<CatalogTrack> {
-        val metrics = catalog.map { com.narrativedj.app.profile.TrackMetrics(it.id, it.bpm, it.energy) }
-        val matchingIds = com.narrativedj.app.profile.SpaceProfileMatcher
-            .filterTracks(profile, metrics)
-            .map { it.id }
-            .toSet()
-        return catalog.filter { it.id in matchingIds }
-    }
-
     fun planRoute(
         currentTrackId: String?,
         targetTrackId: String,
-        profile: com.narrativedj.app.profile.SpaceProfile,
     ): CushionPlan? {
         val currentId = currentTrackId ?: return null
         val target = catalog.firstOrNull { it.id == targetTrackId } ?: return null
-        val profileFilteredDb = profileFilteredVectorDb(profile)
-        if (currentId !in profileFilteredDb || targetTrackId !in profileFilteredDb) {
+        if (currentId !in vectorDb || targetTrackId !in vectorDb) {
             return CushionPlan(
                 currentTrackId = currentId,
                 targetTrackId = targetTrackId,
@@ -78,8 +67,7 @@ class CushionRoutePlanner(
                 dropped = true,
             )
         }
-        val profileScheduler = CushionMusicScheduler(profileFilteredDb)
-        val route = profileScheduler.calculateCushionRoute(currentId, targetTrackId)
+        val route = scheduler.calculateCushionRoute(currentId, targetTrackId)
         return when (route) {
             null -> CushionPlan(
                 currentTrackId = currentId,
@@ -100,15 +88,13 @@ class CushionRoutePlanner(
         }
     }
 
-    fun suggestTarget(
-        currentTrackId: String?,
-        profile: com.narrativedj.app.profile.SpaceProfile,
-    ): CatalogTrack? {
-        val currentId = currentTrackId ?: return profileCandidates(profile).firstOrNull()
-        val candidates = profileCandidates(profile).filter { it.id != currentId }
+    fun suggestTarget(currentTrackId: String?): CatalogTrack? {
+        val currentId = currentTrackId
+        if (currentId == null) return catalog.firstOrNull()
+        val candidates = catalog.filter { it.id != currentId }
         if (candidates.isEmpty()) return null
         return candidates.maxByOrNull { track ->
-            val route = planRoute(currentId, track.id, profile)
+            val route = planRoute(currentId, track.id)
             when {
                 route == null -> -1
                 route.dropped -> -1
@@ -116,11 +102,6 @@ class CushionRoutePlanner(
                 else -> 50 - route.bridgeIds.size * 10
             }
         }
-    }
-
-    private fun profileFilteredVectorDb(profile: com.narrativedj.app.profile.SpaceProfile): Map<String, DoubleArray> {
-        val allowedIds = profileCandidates(profile).map { it.id }.toSet()
-        return vectorDb.filterKeys { it in allowedIds }
     }
 
     private fun normalizeTitle(title: String): String {

@@ -57,7 +57,7 @@ class DjAudioControlParserTest {
     fun fallbackForTransition_includesSubstituteNote() {
         val control = DjAudioControlParser.fallbackForTransition(
             DjTransitionContext(
-                profileLabel = "Café",
+                channelName = "NarrativeDJ",
                 language = AppLanguage.KOREAN,
                 previousTrackTitle = "몽중인",
                 nextTrackTitle = "California Dreamin'",

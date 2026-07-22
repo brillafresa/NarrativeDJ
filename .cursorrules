@@ -7,7 +7,8 @@
 
 - Client-centric BYOK (Bring Your Own Key); no provider server for LLM/TTS or music streaming.
 - YouTube Music via in-app WebView + JS injection.
-- LLM/TTS: user's Gemini or OpenAI API key, consumed on-device.
+- LLM: user's **Gemini** API key only (required at launch); consumed on-device.
+- TTS: Android system TTS (locale follows device system language).
 - Audio ducking via Web Audio API GainNode.
 
 ## Context conflict priority
@@ -54,3 +55,5 @@ Inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 
 - Reference external Downloads paths for research; use `docs/research.md`.
 - Add server-side music streaming or API key storage on a backend.
+- Add OpenAI/ChatGPT BYOK paths — Gemini-only.
+- Ship LLM-optional / local-parser production fallbacks — key gate is mandatory.
