@@ -1,1 +1,1 @@
-"""Cushion music scheduling harness package."""
+"""Harness Python package (schema/reference helpers; not shipped in the APK)."""

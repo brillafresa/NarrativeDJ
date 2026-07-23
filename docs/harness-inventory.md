@@ -2,41 +2,30 @@
 
 Cross-language validation assets for NarrativeDJ.  
 **Conflict priority:** see [HARNESS_RULES.md](../HARNESS_RULES.md) and [.cursorrules](../.cursorrules).  
-**Current app version:** `0.9.4`
+**Current app version:** `0.9.5` (2026-07-24)
 
 ## Production vs harness boundary
 
 | Layer | Path | Role |
 |-------|------|------|
 | **Harness SSOT** | `harness/tests/*.json` | Canonical mock/fixture data |
-| **Python verify** | `harness/scripts/*.py` | Algorithm & schema checks (not shipped) |
-| **JVM unit tests** | `android/app/src/test/` | Kotlin ports, parsers, planners |
+| **Python verify** | `harness/scripts/*.py` | Schema checks (not shipped) |
+| **JVM unit tests** | `android/app/src/test/` | Kotlin parsers, planners, radio |
 | **Instrumentation** | `android/app/src/androidTest/` | WebView/SVD/HackTimer fixture tests |
-| **Production assets** | `android/app/src/main/assets/` | Runtime JS; synced demo catalog (**not loaded by MainActivity**); admin schedule (frozen) |
+| **Production assets** | `android/app/src/main/assets/` | Runtime JS; admin schedule (frozen); WWW fixtures |
 
-Production **must not** reference paths named `mock_*`. Demo data uses neutral names:
+Production **must not** reference paths named `mock_*`. Neutral production demo data:
 
-- `assets/catalog/demo_tracks.json` — synced from `harness/tests/mock_tracks.json`; **harness/vector parity only** (not loaded for radio scheduling)
 - `assets/admin/default_schedule.json` — frozen Admin scaffold
 - `assets/www/fixtures/*.html` — **instrumentation-only** DOM fixtures (not loaded in normal YT Music flow)
 
-## Cushion — two layers (do not confuse)
+There is **no fixed song catalog** in production or harness. Runtime cushion uses Gemini pool pick + invented bridge `search_query` values only.
 
-### A) Vector reference (harness / research parity)
+> **Superseded (do not restore):** `test_cushion_router.py`, `CushionMusicScheduler*`, `mock_tracks.json`, `demo_tracks.json` — removed in v0.9.5. Use `test_cushion_bridge_schema.py` instead.
 
-Fixed demo catalog + distance math (BPM/energy/valence/embedding). Used to prove DROP / DIRECT / 1–2 bridge routes.
+## Runtime radio cushion (production)
 
-| Asset | Verify command |
-|-------|----------------|
-| Python router | `python harness/scripts/test_cushion_router.py` |
-| Kotlin scheduler | `./gradlew test` → `CushionMusicSchedulerTest` |
-| Route planner | `CushionRoutePlannerTest` |
-| Catalog id helper (test-only) | `CatalogMatcherTest` |
-| Playback order fixture | `harness/tests/mock_cushion_playback.json` + `CushionPlaybackControllerTest` |
-
-### B) Runtime radio cushion (production, v0.9.4+)
-
-No fixed catalog. Gemini picks the most-similar **candidate-pool** track (B) vs now-playing (A). If similarity is below 0.55, invents 1–2 YTM `search_query` bridges (C), then plays A→C→B via `NarrativeDJYtm.searchAndPlay`.
+Gemini picks the most-similar **candidate-pool** track (B) vs now-playing (A). If similarity is below 0.55, invents 1–2 YTM `search_query` bridges (C), then plays A→C→B via `NarrativeDJYtm.searchAndPlay`.
 
 | Asset | Verify command |
 |-------|----------------|
@@ -45,6 +34,7 @@ No fixed catalog. Gemini picks the most-similar **candidate-pool** track (B) vs 
 | Parser + threshold | `CushionBridgePlanParserTest` |
 | Apply plan → queries | `RadioSchedulerTest` (`decisionFromPlan`) |
 | Pool resolve | `CushionBridgePlannerServiceTest` |
+| Play sequence | `CushionPlaybackControllerTest` |
 
 **Status UX:** `쿠션 브릿지 N곡 → …` when bridges used; else `재생 예약: …`.
 
@@ -78,11 +68,13 @@ No fixed catalog. Gemini picks the most-similar **candidate-pool** track (B) vs 
 | Response extractor + parser | `LlmResponseExtractorTest`, `DjAudioControlParserTest` |
 | TTS rate | `DjSpeechTimingTest` (`DEFAULT_SPEECH_RATE = 0.85`) |
 | Gemini HTTP helper | `GeminiApiTest` |
+| Model allow-list | `GeminiModelCatalogTest` — default Flash-Lite + resolve |
+| Session 503 fallback | `GeminiModelSessionTest` |
 | Encrypted keys | `SecureKeyStoreTest` (instrumentation) — Gemini only; clears prefs in `@After` |
 | Key usability | `GeminiApiKeyValidator` + `GeminiApiKeyValidatorTest` |
 | Metadata | `PlaybackMetadataFormatterTest` |
 
-**Production pipeline (v0.9.4):** track transition → `DjInterstitialGate` → `DjPipeline.runTransitionMent` → **Gemini** (`gemini-3.5-flash`) → **Android TTS** (rate 0.85) → `audio-ducking.js` duck in/out.
+**Production pipeline (v0.9.5):** track transition → `DjInterstitialGate` → `DjPipeline.runTransitionMent` → **Gemini** (default `gemini-3.5-flash-lite`, menu-selectable; 503 → session sticky fallback) → **Android TTS** (rate 0.85) → `audio-ducking.js` duck in/out.
 
 ## Radio messenger UX harness (Phase F)
 
@@ -117,34 +109,6 @@ No fixed catalog. Gemini picks the most-similar **candidate-pool** track (B) vs 
 | Schema script | `python harness/scripts/test_b2b_schedule_schema.py` |
 | Planner tests | `SchedulePlannerTest`, `B2bPluginTest` |
 
-Not reachable from production UI in v0.9.4 (menu entries removed; AdminActivity not launched).
+## Dead-code policy
 
-## Release harness
-
-| Asset | Verify command |
-|-------|----------------|
-| Signing example | `android/signing.properties.example` |
-| Release doc | `docs/release.md` |
-| Verify script | `python harness/scripts/verify_release_config.py` |
-
-## JS injection pipeline (production)
-
-Loaded at runtime into WebView (`YtmAssetInjector` order):
-
-1. `bridge.js` — NativeAudioBridge
-2. `hack-timer.js` — Web Worker timer (native `setTimeout` fallback on fixture pages)
-3. `audio-ducking.js` — Web Audio GainNode ducking
-4. `ytm-svd.js` — selector self-validation
-5. `ytm-controller.js` — search/play + now-playing control
-
-Selector dictionary: `assets/www/selector_dictionary.json` (also validated by Python script).
-
-## BYOK readiness (production, not harness)
-
-| Component | Storage | Runtime |
-|-----------|---------|---------|
-| Gemini API key | `SecureKeyStore` (EncryptedSharedPreferences) | Launcher key gate + Menu → **API 키 설정** |
-| Debug seed | `BuildConfig.GEMINI_API_KEY` from `local.properties` | `DebugByokSeeder` (DEBUG only) |
-| YT Music session | In-app WebView user login | No server proxy |
-| TTS | Android TTS | Locale from system language; speech rate 0.85 |
-| OpenAI keys | — | **Removed** (v0.9.0) |
+Remove unused production code, fixtures, and harness scripts when a design changes (do not leave “reference-only” orphans that compete with the live path). Prefer deleting over documenting why something is unused.

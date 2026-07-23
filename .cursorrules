@@ -26,7 +26,6 @@ Before production changes, run or extend harness tests:
 
 ```bash
 python harness/scripts/sync_fixtures.py
-python harness/scripts/test_cushion_router.py
 python harness/scripts/test_cushion_bridge_schema.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
@@ -46,6 +45,10 @@ python harness/scripts/run_instrumentation.py
 Default AVD: **Pixel_8** (`harness/config/emulator.json`). If no emulator is running, start it via `ensure_emulator.py` before `installDebug` or `connectedDebugAndroidTest`.
 
 Inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
+
+## Dead-code cleanup
+
+When a design changes, delete unused production code, fixtures, tests, and harness scripts in the same change. Do not leave orphan “reference” paths that compete with the live implementation.
 
 ## Language split
 

@@ -7,7 +7,9 @@ import android.webkit.WebView
 import com.narrativedj.app.R
 import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.byok.llm.DjTransitionContext
+import com.narrativedj.app.byok.llm.GeminiApi
 import com.narrativedj.app.byok.llm.GeminiLlmClient
+import com.narrativedj.app.byok.llm.GeminiModelSession
 import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,8 @@ class DjPipeline(
     private val webViewProvider: () -> WebView?,
     private val scope: CoroutineScope,
     private val languageProvider: () -> AppLanguage,
+    private val modelSession: GeminiModelSession = GeminiModelSession { GeminiApi.DEFAULT_MODEL },
+    private val onCapacityFallback: (from: String, to: String) -> Unit = { _, _ -> },
 ) {
     private var tts: TextToSpeech? = null
     private var segmentCompleteListener: (() -> Unit)? = null
@@ -131,7 +135,12 @@ class DjPipeline(
     private suspend fun resolveTransitionControl(context: DjTransitionContext): DjAudioControl {
         val apiKey = keyStore.getGeminiApiKey()
             ?: throw IllegalStateException("Gemini API key required")
-        return GeminiLlmClient(apiKey).generateTransitionMent(context)
+        return GeminiLlmClient(
+            apiKey = apiKey,
+            model = modelSession.current(),
+            capacitySession = modelSession,
+            onCapacityFallback = onCapacityFallback,
+        ).generateTransitionMent(context)
     }
 
     companion object {

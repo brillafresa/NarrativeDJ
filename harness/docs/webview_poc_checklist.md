@@ -16,7 +16,7 @@ Default AVD: **Pixel_8** (`harness/config/emulator.json`). Manual equivalent: `e
 
 ```bash
 pip install -r harness/requirements.txt
-python harness/scripts/test_cushion_router.py
+python harness/scripts/test_cushion_bridge_schema.py
 cd android && ./gradlew test
 python harness/scripts/ensure_emulator.py
 cd android && ./gradlew assembleDebug installDebug

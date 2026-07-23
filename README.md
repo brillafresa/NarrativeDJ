@@ -7,15 +7,15 @@ Audio-first AI narrative radio DJ — client-centric BYOK Android app with cushi
 
 **Default language:** follows device system locale (Korean + English string resources).
 
-## Download APK (v0.9.4)
+## Download APK (v0.9.5)
 
 Latest sideload build (debug):
 
-- **[NarrativeDJ-0.9.4-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.4-debug.apk)**
+- **[NarrativeDJ-0.9.5-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.5-debug.apk)**
 - Details: [dist/README.md](dist/README.md) · signing notes: [docs/release.md](docs/release.md)
 
 ```bash
-adb install -r dist/NarrativeDJ-0.9.4-debug.apk
+adb install -r dist/NarrativeDJ-0.9.5-debug.apk
 ```
 
 ## Repository structure
@@ -57,7 +57,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 ```bash
 pip install -r harness/requirements.txt
 python harness/scripts/sync_fixtures.py
-python harness/scripts/test_cushion_router.py
+python harness/scripts/test_cushion_bridge_schema.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
 python harness/scripts/test_user_request_schema.py

@@ -46,20 +46,16 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 
 ## Phase B — Cushion playback
 
-**Goal:** Canon route (몽중인 → California Dreamin' → Hotel California → Sweet Child O' Mine) plays via YTM.
+**Goal (historical):** Canon route via YTM search/play.
 
-**Deliverables:**
-- `CushionPlaybackController` — sequential `bridgeIds` + target via JS (harness / future wiring)
-- `CatalogTrack.searchQuery` in catalog JSON (fallback: title)
-- Runtime radio (v0.9.0): direct YTM search from LLM `search_query` (no Plan/Execute UI)
+**Current production (v0.9.4+):** No fixed song catalog. Gemini picks the most-similar **candidate-pool** track and invents bridge `search_query` values when similarity is low. Playback via `CushionPlaybackController.playSequence`.
 
 **Harness:**
-- `harness/tests/mock_cushion_playback.json` — bridge order + queries
-- `test_cushion_router.py` ↔ `CushionMusicSchedulerTest` algorithm parity
-- `CushionPlaybackControllerTest` (JVM)
+- `harness/tests/mock_cushion_bridge.json` + `test_cushion_bridge_schema.py`
+- `CushionBridgePlanParserTest`, `RadioSchedulerTest`, `CushionPlaybackControllerTest`
 - Instrumentation: fixture search/play
 
-**Exit criteria:** Planner/parity tests green; fixture search/play green.
+**Exit criteria:** Bridge schema + schedule-apply tests green; fixture search/play green.
 
 ---
 
@@ -139,6 +135,13 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 
 Update this section at the end of each work session.
 
+### Session Handoff — 2026-07-24 (v0.9.5 model picker + dead catalog purge)
+
+- **Last completed:** Default `gemini-3.5-flash-lite`; overflow model picker; 503 → session sticky fallback; deleted unused vector catalog stack (`test_cushion_router` / `CushionMusicScheduler` / `demo_tracks`); docs SSOT aligned to LLM cushion only
+- **Harness status:** `test_cushion_bridge_schema.py` + model session/catalog JVM tests + full pre-push Python set + `./gradlew testDebugUnitTest`
+- **Blockers:** Device live QA under capacity 503; signed APK
+- **Next session:** Device — confirm model menu + 503 fallback status string; multi-song cushion bridges; push includes `dist/NarrativeDJ-0.9.5-debug.apk`
+
 ### Session Handoff — 2026-07-23 (v0.9.4 LLM pool cushion)
 
 - **Last completed:** Removed runtime catalog cushion; Gemini picks most-similar pool track + invents bridge search queries when similarity below threshold; harness schema/parser; version 0.9.4
@@ -190,7 +193,7 @@ Update this section at the end of each work session.
 ```bash
 pip install -r harness/requirements.txt
 python harness/scripts/sync_fixtures.py
-python harness/scripts/test_cushion_router.py
+python harness/scripts/test_cushion_bridge_schema.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
 python harness/scripts/test_user_request_schema.py

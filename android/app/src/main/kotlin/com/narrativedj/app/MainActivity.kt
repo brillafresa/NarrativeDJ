@@ -19,7 +19,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.narrativedj.app.byok.DebugByokSeeder
 import com.narrativedj.app.byok.GeminiApiKeyValidator
+import com.narrativedj.app.byok.GeminiModelStore
 import com.narrativedj.app.byok.SecureKeyStore
+import com.narrativedj.app.byok.llm.GeminiModelCatalog
+import com.narrativedj.app.byok.llm.GeminiModelSession
 import com.narrativedj.app.databinding.ActivityMainBinding
 import com.narrativedj.app.dj.DjPipeline
 import com.narrativedj.app.locale.AppLocaleStore
@@ -41,6 +44,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var keyStore: SecureKeyStore
+    private lateinit var modelStore: GeminiModelStore
+    private lateinit var modelSession: GeminiModelSession
     private lateinit var djPipeline: DjPipeline
     private lateinit var radioSession: RadioSessionController
     private var tts: TextToSpeech? = null
@@ -59,6 +64,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         keyStore = SecureKeyStore(this)
+        modelStore = GeminiModelStore(this)
         DebugByokSeeder.seedIfNeeded(keyStore)
         if (!keyStore.hasUsableGeminiApiKey()) {
             redirectToKeyGate()
@@ -69,12 +75,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setContentView(binding.root)
         title = getString(R.string.main_title)
 
+        val modelSession = GeminiModelSession { modelStore.getModelId() }.also {
+            this.modelSession = it
+        }
+        val onCapacityFallback: (String, String) -> Unit = { _, to ->
+            runOnUiThread {
+                updateStatus(getString(R.string.gemini_model_fallback, to))
+            }
+        }
+
         djPipeline = DjPipeline(
             context = applicationContext,
             keyStore = keyStore,
             webViewProvider = { binding.webView },
             scope = lifecycleScope,
             languageProvider = { AppLocaleStore.getLanguage(this) },
+            modelSession = modelSession,
+            onCapacityFallback = onCapacityFallback,
         )
         tts = TextToSpeech(this, this)
 
@@ -82,14 +99,22 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             webView = binding.webView,
             handler = mainHandler,
         )
-        val requestParser = RequestParserService(keyStore)
+        val requestParser = RequestParserService(
+            keyStore = keyStore,
+            modelSession = modelSession,
+            onCapacityFallback = onCapacityFallback,
+        )
         val radioScheduler = RadioScheduler()
         radioSession = RadioSessionController(
             context = this,
             scope = lifecycleScope,
             requestParser = requestParser,
             scheduler = radioScheduler,
-            cushionPlanner = CushionBridgePlannerService(keyStore),
+            cushionPlanner = CushionBridgePlannerService(
+                keyStore = keyStore,
+                modelSession = modelSession,
+                onCapacityFallback = onCapacityFallback,
+            ),
             cushionPlayback = cushionPlayback,
             djPipeline = djPipeline,
             languageProvider = { AppLocaleStore.getLanguage(this) },
@@ -140,6 +165,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_gemini_model -> {
+                showGeminiModelDialog()
+                true
+            }
             R.id.action_gemini_key_settings -> {
                 showGeminiKeyDialog()
                 true
@@ -277,6 +306,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             emptyPlaceholder = getString(R.string.waiting_queue_empty),
         )
         binding.waitingQueueText.isSelected = true
+    }
+
+    private fun showGeminiModelDialog() {
+        val options = GeminiModelCatalog.OPTIONS
+        val labels = options.map { getString(it.labelRes) }.toTypedArray()
+        val checked = GeminiModelCatalog.indexOf(modelSession.current())
+        AlertDialog.Builder(this)
+            .setTitle(R.string.gemini_model_settings)
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                val selected = options[which].id
+                modelStore.setModelId(selected)
+                modelSession.clearSticky()
+                updateStatus(getString(R.string.gemini_model_selected, selected))
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showGeminiKeyDialog() {

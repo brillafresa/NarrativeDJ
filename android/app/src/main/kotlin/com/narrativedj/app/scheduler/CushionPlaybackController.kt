@@ -1,31 +1,20 @@
 package com.narrativedj.app.scheduler
 
 import android.os.Handler
-import android.os.Looper
 import android.webkit.WebView
 import com.narrativedj.app.webview.YtmSearchNavigation
 import org.json.JSONObject
 
 /**
- * Executes YTM search/play sequences via WebView JS API.
- * Optional [catalog] supports cushion [buildPlayOrder] / harness tests.
+ * Executes YTM search/play sequences via WebView JS API (bridge then target queries).
+ *
+ * Verify: `./gradlew test --tests com.narrativedj.app.scheduler.CushionPlaybackControllerTest`
  */
 class CushionPlaybackController(
     private val webView: WebView? = null,
     private val handler: Handler? = null,
-    private val catalog: List<CatalogTrack> = emptyList(),
     private val stepDelayMs: Long = DEFAULT_STEP_DELAY_MS,
 ) {
-    fun searchQueryFor(trackId: String): String? {
-        return catalog.firstOrNull { it.id == trackId }?.playbackQuery()
-    }
-
-    fun buildPlayOrder(plan: CushionPlan): List<String> {
-        if (plan.dropped) return emptyList()
-        val ids = plan.bridgeIds + plan.targetTrackId
-        return ids.mapNotNull { searchQueryFor(it) }
-    }
-
     fun playSequence(
         queries: List<String>,
         onStep: ((index: Int, query: String) -> Unit)? = null,
@@ -36,14 +25,6 @@ class CushionPlaybackController(
             return
         }
         playStep(queries, 0, onStep, onComplete)
-    }
-
-    fun playPlan(
-        plan: CushionPlan,
-        onStep: ((index: Int, query: String) -> Unit)? = null,
-        onComplete: (() -> Unit)? = null,
-    ) {
-        playSequence(buildPlayOrder(plan), onStep, onComplete)
     }
 
     private fun playStep(
@@ -87,5 +68,3 @@ class CushionPlaybackController(
         private const val SEARCH_NAV_FLAG_MS = 4_000L
     }
 }
-
-fun CatalogTrack.playbackQuery(): String = searchQuery?.takeIf { it.isNotBlank() } ?: title

@@ -2,6 +2,14 @@
     <string name="app_name">NarrativeDJ</string>
     <string name="main_title">🎧 Narrative DJ</string>
     <string name="gemini_key_settings">API 키 설정</string>
+    <string name="gemini_model_settings">Gemini 모델</string>
+    <string name="gemini_model_selected">모델: %1$s</string>
+    <string name="gemini_model_fallback">503 → 모델 전환: %1$s (종료 시까지)</string>
+    <string name="gemini_model_35_flash_lite">3.5 Flash-Lite (기본 · 권장)</string>
+    <string name="gemini_model_31_flash_lite">3.1 Flash-Lite</string>
+    <string name="gemini_model_25_flash_lite">2.5 Flash-Lite</string>
+    <string name="gemini_model_25_flash">2.5 Flash</string>
+    <string name="gemini_model_35_flash">3.5 Flash (무거움)</string>
     <string name="gemini_key_gate_title">Gemini API 키 필요</string>
     <string name="gemini_key_gate_message">NarrativeDJ는 Gemini API로 요청을 해석합니다. Google AI Studio에서 발급한 API 키를 입력해 주세요.</string>
     <string name="gemini_key_gate_continue">시작하기</string>
@@ -53,9 +61,6 @@
     <string name="dj_generating">DJ 멘트 생성 중…</string>
     <string name="dj_line_prefix">DJ: %1$s</string>
     <string name="dj_error">DJ 오류: %1$s</string>
-    <string name="cushion_drop">%1$s(으)로 가는 쿠션 경로 없음 (DROP)</string>
-    <string name="cushion_direct">바로 연결 → %1$s</string>
-    <string name="cushion_route">쿠션: %1$s → %2$s</string>
     <string name="guard_personal_ok">개인 이용 — BYOK 모드 사용 가능</string>
     <string name="guard_commercial_b2b">상업 공간 — B2B 라이선스 활성</string>
     <string name="guard_commercial_blocked">상업 공간 — B2B 라이선스를 설정하거나 개인 공간으로 변경하세요</string>

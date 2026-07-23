@@ -41,7 +41,7 @@ CHANGELOG v0.6.0 "Phase 1–3 complete" means **Scaffold Complete**, not Feature
 |------|--------|
 | Architecture A BYOK | User YT Music session + **required Gemini** API key on-device |
 | WebView control | SVD, CSP bypass, now-playing parse, search/play JS API |
-| Cushion algorithm | Pool pick by similarity + invented bridge `search_query` (LLM); vector catalog = harness parity only |
+| Cushion algorithm | Pool pick by similarity + invented bridge `search_query` (LLM); no fixed song catalog |
 | Space profiles | Frozen types for admin/B2B tests; **not** in MainActivity UI |
 | AI DJ pipeline | Transition ments (Gemini + Android TTS) between tracks |
 | Radio UX | ▶ Send → Gemini parse → pool → queue-after-current / search |

@@ -1,10 +1,13 @@
 /**
- * JVM harness: GeminiApi error formatting + default model id.
- * Run: cd android && ./gradlew test --tests com.narrativedj.app.byok.llm.GeminiApiTest
+ * JVM harness: GeminiApi error formatting + default model + 503 capacity flag.
+ *
+ * Purpose: Shared HTTP error surface for BYOK Gemini calls (formatError / GeminiHttpException).
+ * Run: cd android && ./gradlew testDebugUnitTest --tests com.narrativedj.app.byok.llm.GeminiApiTest
  */
 package com.narrativedj.app.byok.llm
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -23,7 +26,14 @@ class GeminiApiTest {
     }
 
     @Test
-    fun defaultModel_isCurrentFlashGa() {
-        assertEquals("gemini-3.5-flash", GeminiApi.DEFAULT_MODEL)
+    fun defaultModel_isFlashLite() {
+        assertEquals("gemini-3.5-flash-lite", GeminiApi.DEFAULT_MODEL)
+    }
+
+    @Test
+    fun httpException_503IsCapacityUnavailable() {
+        val e = GeminiHttpException(503, "Gemini 503")
+        assertTrue(e.isCapacityUnavailable)
+        assertFalse(GeminiHttpException(429, "Gemini 429").isCapacityUnavailable)
     }
 }

@@ -12,7 +12,6 @@ data class ParsedTrack(
     val searchQuery: String,
     val isSubstitute: Boolean = false,
     val substituteNote: String? = null,
-    val catalogTrackId: String? = null,
 )
 
 data class UserRequestParseResult(
@@ -28,7 +27,6 @@ data class UserRequestParseResult(
                 requestedLabel = track.requestedTitle,
                 isSubstitute = track.isSubstitute,
                 substituteReason = track.substituteNote,
-                catalogTrackId = track.catalogTrackId,
                 moodHint = moodHint,
             )
         }

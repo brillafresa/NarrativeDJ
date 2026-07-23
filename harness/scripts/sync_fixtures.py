@@ -17,7 +17,6 @@ HARNESS_TESTS = REPO_ROOT / "harness" / "tests"
 ANDROID_TEST_RES = REPO_ROOT / "android" / "app" / "src" / "test" / "resources"
 
 FIXTURES = (
-    "mock_tracks.json",
     "mock_llm_response.json",
     "mock_b2b_schedule.json",
     "mock_user_request.json",

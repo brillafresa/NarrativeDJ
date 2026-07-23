@@ -4,6 +4,7 @@ import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.byok.llm.CushionBridgeContext
 import com.narrativedj.app.byok.llm.CushionBridgePromptBuilder
 import com.narrativedj.app.byok.llm.GeminiApi
+import com.narrativedj.app.byok.llm.GeminiModelSession
 import com.narrativedj.app.byok.llm.LlmResponseExtractor
 import com.narrativedj.app.locale.AppLanguage
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,8 @@ import kotlinx.coroutines.withContext
  */
 class CushionBridgePlannerService(
     private val keyStore: SecureKeyStore,
+    private val modelSession: GeminiModelSession = GeminiModelSession { GeminiApi.DEFAULT_MODEL },
+    private val onCapacityFallback: (from: String, to: String) -> Unit = { _, _ -> },
 ) {
     suspend fun plan(
         currentTrackLabel: String,
@@ -36,7 +39,10 @@ class CushionBridgePlannerService(
             val text = GeminiApi.generateText(
                 apiKey = apiKey,
                 prompt = prompt,
+                model = modelSession.current(),
                 jsonMimeType = true,
+                capacitySession = modelSession,
+                onCapacityFallback = onCapacityFallback,
             )
             val plan = CushionBridgePlanParser.parseJson(
                 LlmResponseExtractor.extractJsonPayload(text),

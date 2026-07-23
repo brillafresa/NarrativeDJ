@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.9.4` — LLM pool cushion (no runtime catalog)
+**Current release:** `0.9.5` (2026-07-24) — Flash-Lite default + model picker + 503 session fallback; vector catalog harness removed
 
 ## Scaffold complete (not E2E)
 
@@ -35,14 +35,13 @@
 
 ### Phase B — Cushion playback
 
-- [x] `CushionPlaybackController` + catalog `search_query` (harness/JVM)
-- [x] Algorithm parity: `test_cushion_router.py` ↔ `CushionMusicSchedulerTest`
-- [x] Harness: `mock_cushion_playback.json` + unit test
-- [x] Runtime cushion via Gemini pool similarity + invented bridges; vector catalog = harness only
+- [x] `CushionPlaybackController` playSequence (YTM search queries)
+- [x] Algorithm parity superseded by LLM cushion schema (`test_cushion_bridge_schema.py`)
+- [x] Runtime cushion via Gemini pool similarity + invented bridges (no fixed catalog)
 
 ### Phase C — DJ radio loop
 
-- [x] Transition ments via Gemini (`GeminiApi` / `gemini-3.5-flash`) + Android TTS
+- [x] Transition ments via Gemini (default `gemini-3.5-flash-lite`, menu picker) + Android TTS
 - [x] Ducking via `audio-ducking.js` GainNode
 - [x] Substitute apology + chat memory in DJ fallback scripts (harness-validated)
 
@@ -54,7 +53,7 @@
 
 ### Phase E — Release ready
 
-- [x] Version 0.9.4 bump
+- [x] Version 0.9.5 bump
 - [x] Unsigned release APK path (`assembleRelease` — local test build)
 - [ ] Signed release APK (local keystore — see [release.md](docs/release.md))
 - [ ] Full release checklist manual sign-off ([release.md](docs/release.md))
@@ -67,7 +66,7 @@ Do not implement unless [project-scope.md](docs/project-scope.md) is revised.
 - [ ] GPS-based commercial venue detection
 - [ ] Admin console write/edit + Korean admin HTML
 - [ ] `SchedulePlanner` runtime auto profile switch
-- [ ] Runtime space-profile spinner / demo-catalog routing
+- [ ] Runtime space-profile spinner (no song catalog)
 - [ ] OpenAI LLM/TTS BYOK (removed — Gemini-only)
 - [ ] CI/CD release pipeline with signing secrets
 - [ ] Full CI emulator matrix API 26–34
@@ -85,7 +84,6 @@ Do not implement unless [project-scope.md](docs/project-scope.md) is revised.
 ```bash
 pip install -r harness/requirements.txt
 python harness/scripts/sync_fixtures.py
-python harness/scripts/test_cushion_router.py
 python harness/scripts/test_cushion_bridge_schema.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py

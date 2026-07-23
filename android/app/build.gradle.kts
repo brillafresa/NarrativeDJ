@@ -20,8 +20,8 @@ android {
         applicationId = "com.narrativedj.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 13
-        versionName = "0.9.4"
+        versionCode = 14
+        versionName = "0.9.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

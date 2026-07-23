@@ -4,6 +4,41 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.5] — 2026-07-24
+
+### Changed
+
+- Default Gemini model: **`gemini-3.5-flash-lite`** (was `gemini-3.5-flash`) to reduce 503 / capacity pressure
+- Cushion verification SSOT is **LLM bridge schema only** (vector catalog harness deleted)
+
+### Added
+
+- Overflow menu **Gemini 모델** — pick among allow-listed Flash / Flash-Lite ids; persisted in `GeminiModelStore`
+- On Gemini **503**, auto-advance to the next allow-listed model, retry, and **keep that model until app exit** (`GeminiModelSession`; prefs unchanged)
+- JVM: `GeminiModelCatalogTest`, `GeminiModelSessionTest`
+
+### Removed
+
+- Legacy **vector song catalog** stack (unused after LLM cushion): `CushionMusicScheduler`, `CushionRoutePlanner`, `TrackCatalogLoader`, `CatalogMatcher*`, `demo_tracks.json` / `mock_tracks.json`, `test_cushion_router.py`, `cushion_scheduler.py`, `mock_cushion_playback.json`
+- Dead `catalogTrackId` field and DROP/DIRECT/route summary strings
+
+### Harness verification (this release)
+
+| Check | Result |
+|-------|--------|
+| LLM cushion schema | `test_cushion_bridge_schema.py` + `CushionBridgePlanParserTest` |
+| Schedule apply | `RadioSchedulerTest` (`decisionFromPlan`) |
+| Model allow-list + 503 sticky | `GeminiModelCatalogTest` + `GeminiModelSessionTest` |
+| Play sequence | `CushionPlaybackControllerTest` |
+| Pre-push Python set | sync + cushion_bridge + selector + llm + user_request + b2b + release |
+| JVM | `./gradlew testDebugUnitTest` |
+
+### AI DJ / cushion harness summary
+
+- **Cushion:** Gemini picks most-similar **candidate-pool** track vs now-playing; if similarity < 0.55 invents 1–2 YTM bridge `search_query` values → `playSequence`. Fixture: `mock_cushion_bridge.json`.
+- **AI DJ ment:** Gemini → Android TTS (0.85) → `audio-ducking.js`. Model from menu / session sticky fallback on 503.
+- **Do not** revive fixed song catalogs or `test_cushion_router.py` — superseded.
+
 ## [0.9.4] — 2026-07-23
 
 ### Changed

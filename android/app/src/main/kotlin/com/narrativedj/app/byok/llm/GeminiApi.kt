@@ -8,18 +8,55 @@ import java.net.URL
  * Shared Gemini generateContent caller.
  *
  * Purpose: single production HTTP path for request parse + DJ transition ments.
- * Default model: [DEFAULT_MODEL] (Flash GA after 1.5/2.0 shutdown).
+ * Default model: [DEFAULT_MODEL] (Flash-Lite — lower load / fewer 503s than full Flash).
+ * On 503, optional [capacitySession] advances to the next allow-listed model and retries.
  *
  * Verify: `./gradlew test --tests com.narrativedj.app.byok.llm.GeminiApiTest`
  */
 object GeminiApi {
-    const val DEFAULT_MODEL = "gemini-3.5-flash"
+    const val DEFAULT_MODEL = GeminiModelCatalog.DEFAULT_MODEL
 
     fun generateText(
         apiKey: String,
         prompt: String,
         model: String = DEFAULT_MODEL,
         jsonMimeType: Boolean = false,
+        capacitySession: GeminiModelSession? = null,
+        onCapacityFallback: (from: String, to: String) -> Unit = { _, _ -> },
+    ): String {
+        if (capacitySession == null) {
+            return generateTextOnce(apiKey, prompt, model, jsonMimeType)
+        }
+        return withCapacityFallback(capacitySession, onCapacityFallback) { attemptModel ->
+            generateTextOnce(apiKey, prompt, attemptModel, jsonMimeType)
+        }
+    }
+
+    /**
+     * Retry [block] on 503 by advancing [session] sticky model until success or chain exhausted.
+     */
+    fun <T> withCapacityFallback(
+        session: GeminiModelSession,
+        onCapacityFallback: (from: String, to: String) -> Unit = { _, _ -> },
+        block: (model: String) -> T,
+    ): T {
+        while (true) {
+            val model = session.current()
+            try {
+                return block(model)
+            } catch (e: GeminiHttpException) {
+                if (!e.isCapacityUnavailable) throw e
+                val next = session.advanceAfterCapacityError() ?: throw e
+                onCapacityFallback(model, next)
+            }
+        }
+    }
+
+    private fun generateTextOnce(
+        apiKey: String,
+        prompt: String,
+        model: String,
+        jsonMimeType: Boolean,
     ): String {
         val endpoint = URL(
             "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey",
@@ -64,7 +101,10 @@ object GeminiApi {
         }
         val response = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
         if (connection.responseCode !in 200..299) {
-            throw IllegalStateException(formatError(connection.responseCode, response))
+            throw GeminiHttpException(
+                statusCode = connection.responseCode,
+                message = formatError(connection.responseCode, response),
+            )
         }
         return response
     }

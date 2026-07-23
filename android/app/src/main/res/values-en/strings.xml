@@ -2,6 +2,14 @@
     <string name="app_name">NarrativeDJ</string>
     <string name="main_title">🎧 Narrative DJ</string>
     <string name="gemini_key_settings">API key settings</string>
+    <string name="gemini_model_settings">Gemini model</string>
+    <string name="gemini_model_selected">Model: %1$s</string>
+    <string name="gemini_model_fallback">503 → switched model: %1$s (until app exit)</string>
+    <string name="gemini_model_35_flash_lite">3.5 Flash-Lite (default)</string>
+    <string name="gemini_model_31_flash_lite">3.1 Flash-Lite</string>
+    <string name="gemini_model_25_flash_lite">2.5 Flash-Lite</string>
+    <string name="gemini_model_25_flash">2.5 Flash</string>
+    <string name="gemini_model_35_flash">3.5 Flash (heavier)</string>
     <string name="gemini_key_gate_title">Gemini API key required</string>
     <string name="gemini_key_gate_message">NarrativeDJ uses the Gemini API to interpret your requests. Enter an API key from Google AI Studio.</string>
     <string name="gemini_key_gate_continue">Continue</string>
@@ -53,9 +61,6 @@
     <string name="dj_generating">Generating DJ line…</string>
     <string name="dj_line_prefix">DJ: %1$s</string>
     <string name="dj_error">DJ error: %1$s</string>
-    <string name="cushion_drop">No cushion path to %1$s (DROP)</string>
-    <string name="cushion_direct">Direct → %1$s</string>
-    <string name="cushion_route">Cushion: %1$s → %2$s</string>
     <string name="guard_personal_ok">Personal use — BYOK mode OK</string>
     <string name="guard_commercial_b2b">Commercial space — B2B license active</string>
     <string name="guard_commercial_blocked">Commercial space detected — configure B2B license or switch venue to personal</string>

@@ -4,11 +4,11 @@
 
 Prebuilt **debug** APK for personal sideload / emulator (not Play Store):
 
-- **v0.9.4:** [NarrativeDJ-0.9.4-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.4-debug.apk)
+- **v0.9.5:** [NarrativeDJ-0.9.5-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.5-debug.apk)
 - Catalog: [dist/README.md](../dist/README.md)
 
 ```bash
-adb install -r dist/NarrativeDJ-0.9.4-debug.apk
+adb install -r dist/NarrativeDJ-0.9.5-debug.apk
 ```
 
 **Agent / maintainer rule:** on every **commit + push**, rebuild `assembleDebug`, copy to `dist/NarrativeDJ-<versionName>-debug.apk`, and refresh links in `README.md`, this file, and `dist/README.md` (see `.cursor/rules/commit-push-apk.mdc`).

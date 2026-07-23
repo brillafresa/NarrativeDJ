@@ -23,7 +23,7 @@ No provider server for streaming or AI inference billing.
 flowchart LR
     App[Android_Kotlin] --> WebView[YT_Music_WebView]
     WebView --> Inject[JS_Injection]
-    Inject --> Scheduler[CushionMusicScheduler]
+    Inject --> Scheduler[RadioScheduler_LLM_cushion]
     Scheduler --> Inject
     App --> CSP[shouldInterceptRequest_CSP_bypass]
 ```
@@ -61,7 +61,7 @@ android/app/src/test/  JVM unit tests (fixtures synced via sync_fixtures.py)
 android/app/src/androidTest/  WebView instrumentation harness
 ```
 
-Production demo data uses neutral asset names (`catalog/demo_tracks.json`, `admin/default_schedule.json`). See [harness-inventory.md](harness-inventory.md).
+Production demo data uses neutral asset names (`admin/default_schedule.json`). See [harness-inventory.md](harness-inventory.md).
 
 ```text
 docs/research.md     Source of Truth
