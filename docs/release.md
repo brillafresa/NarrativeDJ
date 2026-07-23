@@ -4,11 +4,11 @@
 
 Prebuilt **debug** APK for personal sideload / emulator (not Play Store):
 
-- **v0.9.0:** [NarrativeDJ-0.9.0-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.0-debug.apk)
+- **v0.9.1:** [NarrativeDJ-0.9.1-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.1-debug.apk)
 - Catalog: [dist/README.md](../dist/README.md)
 
 ```bash
-adb install -r dist/NarrativeDJ-0.9.0-debug.apk
+adb install -r dist/NarrativeDJ-0.9.1-debug.apk
 ```
 
 **Agent / maintainer rule:** on every **commit + push**, rebuild `assembleDebug`, copy to `dist/NarrativeDJ-<versionName>-debug.apk`, and refresh links in `README.md`, this file, and `dist/README.md` (see `.cursor/rules/commit-push-apk.mdc`).
@@ -53,19 +53,19 @@ Output: `android/app/build/outputs/apk/release/app-release.apk`
 
 If `signing.properties` is missing, `assembleRelease` builds an **unsigned** APK (suitable for local testing only).
 
-## Distribution checklist (Personal BYOK MVP v0.9.0)
+## Distribution checklist (Personal BYOK MVP v0.9.1)
 
 **Automated (pre-push):**
 
 - [x] All harness scripts pass (see [HARNESS_RULES.md](../HARNESS_RULES.md))
 - [x] `./gradlew test` green
 - [ ] Instrumentation on Pixel_8 (`ensure_emulator.py` + `run_instrumentation.py`) — optional before push; required for Release Ready
-- [x] Version bumped in `android/app/build.gradle.kts` (0.9.0 / code 9)
+- [x] Version bumped in `android/app/build.gradle.kts` (0.9.1 / code 10)
 - [x] `CHANGELOG.md` updated
 
 **Release build:**
 
-- [x] `./gradlew assembleDebug` → published under `dist/NarrativeDJ-0.9.0-debug.apk`
+- [x] `./gradlew assembleDebug` → published under `dist/NarrativeDJ-0.9.1-debug.apk`
 - [x] `./gradlew assembleRelease` succeeds (unsigned without `signing.properties`)
 - [ ] Signed release APK (`android/signing.properties` + local keystore)
 
@@ -73,7 +73,7 @@ If `signing.properties` is missing, `assembleRelease` builds an **unsigned** APK
 
 - [ ] Live YTM PoC checklist ([webview_poc_checklist.md](../harness/docs/webview_poc_checklist.md)) — include queue-after-current
 - [ ] 30 min background QA ([background_qa_checklist.md](../harness/docs/background_qa_checklist.md))
-- [ ] Gemini key gate: fresh install without key cannot enter MainActivity
+- [ ] Gemini key gate: fresh install without usable key cannot enter MainActivity; placeholders rejected
 
 **Deferred (out of MVP scope):** B2B commercial venues / Admin UI — see [project-scope.md](project-scope.md).
 

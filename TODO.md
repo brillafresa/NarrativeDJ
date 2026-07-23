@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.9.0` — Gemini-only BYOK + radio queue policy (live YTM QA pending)
+**Current release:** `0.9.1` — usable Gemini key gate + debug seed hygiene (live YTM QA pending)
 
 ## Scaffold complete (not E2E)
 
@@ -15,7 +15,7 @@
 
 ## In scope — MVP feature completion
 
-### Phase F — Radio messenger UX (v0.8.0 → v0.9.0)
+### Phase F — Radio messenger UX (v0.8.0 → v0.9.1)
 
 - [x] Single ▶ send control (Plan/Play/DJ removed)
 - [x] Gemini request parser → candidate pool + listener memory (no local production fallback)
@@ -23,7 +23,8 @@
 - [x] Queue-after-current policy (`RadioPlaybackPolicy`) — do not interrupt playing track
 - [x] DJ interstitial (random 1–2 songs) with substitute/chat context
 - [x] YTM login redirect narrowed (auth URLs allowed)
-- [x] Gemini key gate (launcher) — app unusable without key
+- [x] Gemini key gate (launcher) — usable key required (`GeminiApiKeyValidator`; placeholders rejected)
+- [x] Debug live-QA seed from `local.properties` via `DebugByokSeeder` (gitignored; overwrites unusable leftovers)
 - [ ] Live YTM manual QA with send + queue-after-current flow
 
 ### Phase A — Live YTM + WebView control
@@ -53,7 +54,7 @@
 
 ### Phase E — Release ready
 
-- [x] Version 0.9.0 bump
+- [x] Version 0.9.1 bump
 - [x] Unsigned release APK path (`assembleRelease` — local test build)
 - [ ] Signed release APK (local keystore — see [release.md](docs/release.md))
 - [ ] Full release checklist manual sign-off ([release.md](docs/release.md))
@@ -77,6 +78,7 @@ Do not implement unless [project-scope.md](docs/project-scope.md) is revised.
 
 - Queue-after-current: automated policy unit-tested; live YTM end-of-track handoff still needs manual sign-off
 - Mood/search play: prefer Songs shelf; playlist mis-clicks reduced — re-verify on device
+- Emulator cold boot (`-no-snapshot-load`): wait for network before YTM load (`ERR_NAME_NOT_RESOLVED` = env, not app)
 
 ## Pre-push verification (Harness-First)
 

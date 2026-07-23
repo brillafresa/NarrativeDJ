@@ -4,6 +4,39 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.1] — 2026-07-23
+
+### Fixed
+
+- **Gemini key gate:** reject blank/placeholder keys (`test-key-123`, etc.); debug seeder overwrites unusable leftovers from instrumentation
+- **SecureKeyStoreTest:** clear encrypted prefs in `@After` so device store is not polluted after connected tests
+
+### Added
+
+- JVM harness: `GeminiApiKeyValidator` + `GeminiApiKeyValidatorTest`
+- `SecureKeyStore.hasUsableGeminiApiKey()` for gate / MainActivity / debug seed
+
+### Changed
+
+- Emulator harness: `boot_timeout_sec` 180 → **300** (cold boot with `-no-snapshot-load`)
+- Docs / SSOT: HARNESS_RULES emulator command + BYOK usability; harness inventory; session handoff
+- Version code 10
+
+### Harness verification (this release)
+
+| Check | Result |
+|-------|--------|
+| Cushion algorithm | `test_cushion_router.py` + `CushionMusicSchedulerTest` |
+| AI DJ schema | `test_llm_response_schema.py` (`mock_llm_response`, `mock_dj_transition`) |
+| Radio request schema | `test_user_request_schema.py` + `UserRequestParserTest` |
+| BYOK key usability | `GeminiApiKeyValidatorTest` |
+| Selector / B2B / release | remaining Python scripts + `./gradlew test` |
+
+### Verified (pre-push)
+
+- Python harness 6/6, `./gradlew test` PASS
+- Debug APK: [`dist/NarrativeDJ-0.9.1-debug.apk`](dist/NarrativeDJ-0.9.1-debug.apk)
+
 ## [0.9.0] — 2026-07-22
 
 ### Added

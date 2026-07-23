@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.narrativedj.app.byok.DebugByokSeeder
+import com.narrativedj.app.byok.GeminiApiKeyValidator
 import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.databinding.ActivityMainBinding
 import com.narrativedj.app.dj.DjPipeline
@@ -56,7 +57,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onCreate(savedInstanceState)
         keyStore = SecureKeyStore(this)
         DebugByokSeeder.seedIfNeeded(keyStore)
-        if (!keyStore.hasGeminiApiKey()) {
+        if (!keyStore.hasUsableGeminiApiKey()) {
             redirectToKeyGate()
             return
         }
@@ -109,7 +110,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
-        if (::keyStore.isInitialized && !keyStore.hasGeminiApiKey()) {
+        if (::keyStore.isInitialized && !keyStore.hasUsableGeminiApiKey()) {
             redirectToKeyGate()
         }
     }
@@ -251,28 +252,41 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         val geminiInput = EditText(this).apply {
             hint = getString(R.string.gemini_key_hint)
-            setText(keyStore.getGeminiApiKey().orEmpty())
+            val stored = keyStore.getGeminiApiKey().orEmpty()
+            setText(if (GeminiApiKeyValidator.isUsable(stored)) stored else "")
         }
         layout.addView(geminiInput)
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.gemini_key_settings)
             .setView(layout)
-            .setPositiveButton(R.string.save_keys) { _, _ ->
-                saveGeminiKey(geminiInput)
-            }
+            .setPositiveButton(R.string.save_keys, null)
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if (trySaveGeminiKey(geminiInput)) {
+                    dialog.dismiss()
+                }
+            }
+        }
+        dialog.show()
     }
 
-    private fun saveGeminiKey(geminiInput: EditText) {
+    /** @return true when save/clear completed and dialog may close. */
+    private fun trySaveGeminiKey(geminiInput: EditText): Boolean {
         val gemini = geminiInput.text?.toString()?.trim().orEmpty()
         if (gemini.isBlank()) {
             keyStore.clearGeminiApiKey()
             redirectToKeyGate()
-            return
+            return true
+        }
+        if (!GeminiApiKeyValidator.isUsable(gemini)) {
+            geminiInput.error = getString(R.string.gemini_key_invalid)
+            return false
         }
         keyStore.saveGeminiApiKey(gemini)
         updateStatus(getString(R.string.status_keys_saved))
+        return true
     }
 
     private fun onBridgeMessage(data: String) {

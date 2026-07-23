@@ -7,15 +7,15 @@ Audio-first AI narrative radio DJ — client-centric BYOK Android app with cushi
 
 **Default language:** follows device system locale (Korean + English string resources).
 
-## Download APK (v0.9.0)
+## Download APK (v0.9.1)
 
 Latest sideload build (debug):
 
-- **[NarrativeDJ-0.9.0-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.0-debug.apk)**
+- **[NarrativeDJ-0.9.1-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.1-debug.apk)**
 - Details: [dist/README.md](dist/README.md) · signing notes: [docs/release.md](docs/release.md)
 
 ```bash
-adb install -r dist/NarrativeDJ-0.9.0-debug.apk
+adb install -r dist/NarrativeDJ-0.9.1-debug.apk
 ```
 
 ## Repository structure

@@ -5,6 +5,7 @@
     <string name="gemini_key_gate_message">NarrativeDJ uses the Gemini API to interpret your requests. Enter an API key from Google AI Studio.</string>
     <string name="gemini_key_gate_continue">Continue</string>
     <string name="gemini_key_required">Enter your Gemini API key.</string>
+    <string name="gemini_key_invalid">Enter a valid Gemini API key. Test or placeholder keys are not accepted.</string>
     <string name="provider_ytm">YouTube Music</string>
     <string name="status_parse_error">Could not parse request: %1$s</string>
     <string name="admin_console_title">Admin Console</string>

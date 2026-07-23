@@ -1,5 +1,5 @@
 {
   "avd_name": "Pixel_8",
-  "boot_timeout_sec": 180,
+  "boot_timeout_sec": 300,
   "startup_args": ["-no-snapshot-load"]
 }

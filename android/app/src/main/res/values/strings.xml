@@ -5,6 +5,7 @@
     <string name="gemini_key_gate_message">NarrativeDJ는 Gemini API로 요청을 해석합니다. Google AI Studio에서 발급한 API 키를 입력해 주세요.</string>
     <string name="gemini_key_gate_continue">시작하기</string>
     <string name="gemini_key_required">Gemini API 키를 입력해 주세요.</string>
+    <string name="gemini_key_invalid">유효한 Gemini API 키를 입력해 주세요. (테스트/플레이스홀더 키는 사용할 수 없습니다)</string>
     <string name="provider_ytm">YouTube Music</string>
     <string name="status_parse_error">요청 해석 실패: %1$s</string>
     <string name="admin_console_title">관리 콘솔</string>

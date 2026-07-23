@@ -26,6 +26,9 @@ class SecureKeyStore(context: Context) {
 
     fun hasGeminiApiKey(): Boolean = getGeminiApiKey() != null
 
+    /** True when a stored key passes [GeminiApiKeyValidator] (not blank/placeholder). */
+    fun hasUsableGeminiApiKey(): Boolean = GeminiApiKeyValidator.isUsable(getGeminiApiKey())
+
     fun clearGeminiApiKey() {
         prefs.edit().remove(PREF_KEY_GEMINI).apply()
     }

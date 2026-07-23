@@ -2,7 +2,7 @@
 
 Cross-language validation assets for NarrativeDJ.  
 **Conflict priority:** see [HARNESS_RULES.md](../HARNESS_RULES.md) and [.cursorrules](../.cursorrules).  
-**Current app version:** `0.9.0`
+**Current app version:** `0.9.1`
 
 ## Production vs harness boundary
 
@@ -31,16 +31,16 @@ Production **must not** reference paths named `mock_*`. Demo data uses neutral n
 | JVM controller | `CushionPlaybackControllerTest` |
 | Instrumentation | `run_instrumentation.py` → `YtmControllerFixtureTest` (search/play on DOM fixture) |
 
-**How verified:** Python reference (`harness/src`) and Kotlin `CushionMusicScheduler` must agree on DROP / DIRECT / bridge routes for the canon catalog. Runtime radio (**v0.9.0**) plays the LLM `search_query` directly via `NarrativeDJYtm.searchAndPlay` — cushion bridges remain a **harness-verified** capability for future wiring, not a live MainActivity catalog walk.
+**How verified:** Python reference (`harness/src`) and Kotlin `CushionMusicScheduler` must agree on DROP / DIRECT / bridge routes for the canon catalog. Runtime radio (**v0.9.1**) plays the LLM `search_query` directly via `NarrativeDJYtm.searchAndPlay` — cushion bridges remain a **harness-verified** capability for future wiring, not a live MainActivity catalog walk.
 
 ## Emulator harness (local debugging)
 
 | Asset | Verify command |
 |-------|----------------|
-| AVD config | `harness/config/emulator.json` — default **Pixel_8** |
-| Ensure running | `python harness/scripts/ensure_emulator.py` |
+| AVD config | `harness/config/emulator.json` — default **Pixel_8**; `startup_args: [-no-snapshot-load]`; `boot_timeout_sec: 300` |
+| Ensure running | `python harness/scripts/ensure_emulator.py` → `emulator -avd Pixel_8 -no-snapshot-load` |
 | Instrumentation runner | `python harness/scripts/run_instrumentation.py` |
-| Manual start (equivalent) | `emulator -avd Pixel_8` |
+| Manual start (equivalent) | `emulator -avd Pixel_8 -no-snapshot-load` |
 
 **Agent rule:** before WebView fixture tests, `installDebug`, or on-device debugging, run `ensure_emulator.py`.
 
@@ -67,12 +67,13 @@ SDK resolution order: `ANDROID_HOME` / `ANDROID_SDK_ROOT` → `harness/config/em
 | Response extractor + parser | `LlmResponseExtractorTest`, `DjAudioControlParserTest` |
 | Transition prompt | `DjTransitionPromptBuilder.build(...)` — KO/EN from system locale |
 | Gemini HTTP helper | `GeminiApiTest` — error formatting + default model id |
-| Encrypted keys | `SecureKeyStoreTest` (instrumentation) — Gemini only |
+| Encrypted keys | `SecureKeyStoreTest` (instrumentation) — Gemini only; clears prefs in `@After` |
+| Key usability | `GeminiApiKeyValidator` + `GeminiApiKeyValidatorTest` — reject placeholders |
 | Metadata | `PlaybackMetadataFormatterTest` |
 
-**Production pipeline (v0.9.0):** track transition → `DjInterstitialGate` → `DjPipeline.runTransitionMent` → **Gemini** (`gemini-3.5-flash`) → **Android TTS** → `audio-ducking.js` duck in/out.
+**Production pipeline (v0.9.1):** track transition → `DjInterstitialGate` → `DjPipeline.runTransitionMent` → **Gemini** (`gemini-3.5-flash`) → **Android TTS** → `audio-ducking.js` duck in/out.
 
-**How verified:** schema scripts assert fixture JSON shape; JVM parsers assert ducking fields + fallback scripts; no OpenAI path in production.
+**How verified:** schema scripts assert fixture JSON shape; JVM parsers assert ducking fields + fallback scripts; no OpenAI path in production. Key gate uses `GeminiApiKeyValidator` (JVM-tested); debug seed from gitignored `local.properties` for live QA.
 
 ## Radio messenger UX harness (Phase F)
 
@@ -107,7 +108,7 @@ SDK resolution order: `ANDROID_HOME` / `ANDROID_SDK_ROOT` → `harness/config/em
 | Schema script | `python harness/scripts/test_b2b_schedule_schema.py` |
 | Planner tests | `SchedulePlannerTest`, `B2bPluginTest` |
 
-Not reachable from production UI in v0.9.0 (menu entries removed; AdminActivity not launched).
+Not reachable from production UI in v0.9.1 (menu entries removed; AdminActivity not launched).
 
 ## Release harness
 

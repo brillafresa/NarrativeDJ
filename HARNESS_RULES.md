@@ -29,7 +29,15 @@ python harness/scripts/ensure_emulator.py
 python harness/scripts/run_instrumentation.py
 ```
 
-Local default AVD: **Pixel_8** (`harness/config/emulator.json`). If no device is connected, `ensure_emulator.py` starts `emulator -avd Pixel_8` and waits for boot. Agents and developers should use this harness before `installDebug` or WebView instrumentation debugging.
+Local default AVD: **Pixel_8** (`harness/config/emulator.json`).
+
+Canonical start command (via `ensure_emulator.py`):
+
+```text
+emulator -avd Pixel_8 -no-snapshot-load
+```
+
+`-no-snapshot-load` forces a cold boot (slower; wait up to `boot_timeout_sec`, default **300**). Agents and developers should use this harness before `installDebug` or WebView instrumentation debugging. After boot, confirm network (`eth0` up) before live YTM QA — `ERR_NAME_NOT_RESOLVED` is an emulator DNS/network failure, not an app bug.
 
 ## i18n
 
@@ -60,7 +68,9 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 - Demo catalog: `assets/catalog/demo_tracks.json` (harness sync from `mock_tracks.json`; **not loaded at app runtime** — cushion parity is harness/JVM only).
 - Admin demo schedule: `assets/admin/default_schedule.json` (frozen B2B/Admin scaffold).
 - WebView DOM fixtures: `assets/www/fixtures/` (instrumentation only).
-- BYOK: **Gemini API key only** in `SecureKeyStore`; never commit secrets. Debug builds may seed from `local.properties` `gemini.api.key` via `DebugByokSeeder`.
+- BYOK: **Gemini API key only** in `SecureKeyStore`; never commit secrets.
+- Debug live QA: seed from `local.properties` `gemini.api.key` via `DebugByokSeeder` (DEBUG only; gitignored).
+- Gate requires a **usable** key (`GeminiApiKeyValidator`) — blank / `test-key-123` / placeholders are rejected. Instrumentation must clear prefs in `@After`.
 
 ## Algorithm parity
 
@@ -78,6 +88,11 @@ Radio request schema changes must pass:
 
 - `harness/scripts/test_user_request_schema.py`
 - `UserRequestParserTest` (JVM; includes `parseLocal` edge cases — **not** a production fallback)
+
+BYOK key usability changes must pass:
+
+- `GeminiApiKeyValidatorTest` (JVM)
+- Gate / `DebugByokSeeder` / `SecureKeyStore.hasUsableGeminiApiKey`
 
 ## Source of truth priority
 

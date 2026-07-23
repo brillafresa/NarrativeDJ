@@ -5,11 +5,11 @@
 
 This is the execution roadmap to reach **Release Ready** for the personal BYOK Android MVP.
 
-## Current baseline (2026-07-22)
+## Current baseline (2026-07-23)
 
 - Harness: Python 6 scripts + `./gradlew test` — **green** (instrumentation optional)
-- MVP code: Gemini-only BYOK key gate, radio messenger UX, queue-after-current, YTM search/play
-- Release: **v0.9.0**; unsigned `assembleRelease` OK
+- MVP code: Gemini-only BYOK with **usable-key** gate + debug `local.properties` seed; radio messenger UX; queue-after-current; YTM search/play
+- Release: **v0.9.1**; unsigned `assembleRelease` OK
 - **Remaining for Release Ready:** live YTM manual QA (incl. queue handoff) + 30 min background sign-off + signed APK
 
 ## Phase overview
@@ -138,6 +138,13 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 ## Session handoff
 
 Update this section at the end of each work session.
+
+### Session Handoff — 2026-07-23 (v0.9.1 usable Gemini key gate)
+
+- **Last completed:** `GeminiApiKeyValidator` + gate/seeder hygiene; instrumentation `@After` clears prefs; emulator `boot_timeout_sec=300`; docs/SSOT sync; version 0.9.1
+- **Harness status:** Python 6/6 + `./gradlew test` (incl. `GeminiApiKeyValidatorTest`, cushion parity)
+- **Blockers:** Live YTM QA for queue handoff (wait for emulator network after cold boot); signed APK
+- **Next session:** `ensure_emulator.py` → wait for network → debug install (auto-seed from `local.properties`) → queue-after-current manual QA
 
 ### Session Handoff — 2026-07-22 (v0.9.0 Gemini-only + queue policy)
 
