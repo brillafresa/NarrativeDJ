@@ -2,6 +2,10 @@
 
 Run after Phase D MediaSession changes. Requires emulator or device with YT Music logged in.
 
+## Limits (WebView YTM)
+
+Audio plays inside the in-app YouTube Music WebView (not a native MediaPlayer). NarrativeDJ keeps a foreground service + wake lock and avoids `WebView.onPause()` on Activity pause, but **some OEM / Chrome versions may still pause media when the app is minimized**. Treat 30‑min background as best-effort; file OEM notes if audio stops.
+
 ## Setup
 
 ```bash

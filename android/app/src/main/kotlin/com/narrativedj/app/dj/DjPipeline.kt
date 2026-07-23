@@ -28,6 +28,7 @@ class DjPipeline(
     fun bindTts(engine: TextToSpeech) {
         tts = engine
         applyTtsLocale(engine)
+        engine.setSpeechRate(DEFAULT_SPEECH_RATE)
         tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) = Unit
 
@@ -103,7 +104,7 @@ class DjPipeline(
             applyTtsLocale(requireNotNull(tts))
             val utteranceId = "narrativedj-${System.currentTimeMillis()}"
             webViewProvider()?.evaluateJavascript(
-                "NarrativeDJ.duckForSpeech(${estimateSpeechMs(control.script)}, ${control.duckingVolume});",
+                "NarrativeDJ.duckForSpeech(${estimateSpeechMs(control.script, DEFAULT_SPEECH_RATE)}, ${control.duckingVolume});",
                 null,
             )
             tts?.speak(control.script, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
@@ -133,13 +134,17 @@ class DjPipeline(
         return GeminiLlmClient(apiKey).generateTransitionMent(context)
     }
 
-    private fun estimateSpeechMs(script: String): Long {
-        val words = script.split(Regex("\\s+")).count { it.isNotBlank() }
-        return (words * 400L).coerceAtLeast(2_000L)
-    }
-
     companion object {
         private const val DEFAULT_RAMP_OUT = 0.55
+
+        /** Slightly slower than engine default for clearer DJ narration. */
+        const val DEFAULT_SPEECH_RATE = 0.85f
+
+        fun estimateSpeechMs(script: String, speechRate: Float = DEFAULT_SPEECH_RATE): Long {
+            val words = script.split(Regex("\\s+")).count { it.isNotBlank() }
+            val rate = speechRate.coerceIn(0.5f, 1.5f)
+            return ((words * 400L) / rate).toLong().coerceAtLeast(2_000L)
+        }
     }
 }
 

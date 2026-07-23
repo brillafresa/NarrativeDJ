@@ -58,6 +58,21 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/waitingQueueText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:text="@string/waiting_queue_empty"
+            android:textColor="#FFB0BEC5"
+            android:textSize="12sp" />
+
+        <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

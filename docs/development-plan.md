@@ -9,8 +9,8 @@ This is the execution roadmap to reach **Release Ready** for the personal BYOK A
 
 - Harness: Python 6 scripts + `./gradlew test` — **green** (instrumentation optional)
 - MVP code: Gemini-only BYOK with **usable-key** gate + debug `local.properties` seed; radio messenger UX; queue-after-current; YTM search/play
-- Release: **v0.9.2**; unsigned `assembleRelease` OK
-- **Remaining for Release Ready:** live YTM manual QA on device (incl. queue handoff) + 30 min background sign-off + signed APK
+- Release: **v0.9.3**; unsigned `assembleRelease` OK
+- **Remaining for Release Ready:** live YTM manual QA on device (queue + cushion + background) + 30 min background sign-off + signed APK
 
 ## Phase overview
 
@@ -138,6 +138,13 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 ## Session handoff
 
 Update this section at the end of each work session.
+
+### Session Handoff — 2026-07-23 (v0.9.3 live QA fixes)
+
+- **Last completed:** Leave-page auto-confirm; runtime cushion via demo catalog; TTS 0.85; waiting-queue marquee; title/hint UX; WebView background harden; version 0.9.3
+- **Harness status:** Python 6/6 + `./gradlew testDebugUnitTest` (RadioScheduler cushion cases, WebChromeClient, CatalogMatcher, DjSpeechTiming)
+- **Blockers:** Device re-QA; OEM WebView background limits; signed APK
+- **Next session:** Install 0.9.3 on device — confirm no leave dialog on search; cushion status when catalog tracks; background minimize; TTS pace
 
 ### Session Handoff — 2026-07-23 (v0.9.2 sticky queue-after-current)
 

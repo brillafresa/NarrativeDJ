@@ -2,7 +2,7 @@
 
 Cross-language validation assets for NarrativeDJ.  
 **Conflict priority:** see [HARNESS_RULES.md](../HARNESS_RULES.md) and [.cursorrules](../.cursorrules).  
-**Current app version:** `0.9.2`
+**Current app version:** `0.9.3`
 
 ## Production vs harness boundary
 
@@ -16,7 +16,7 @@ Cross-language validation assets for NarrativeDJ.
 
 Production **must not** reference paths named `mock_*`. Demo data uses neutral names:
 
-- `assets/catalog/demo_tracks.json` — synced from `harness/tests/mock_tracks.json`; **not loaded by MainActivity**
+- `assets/catalog/demo_tracks.json` — synced from `harness/tests/mock_tracks.json`; loaded at runtime for cushion routing when both ends match
 - `assets/admin/default_schedule.json` — frozen Admin scaffold
 - `assets/www/fixtures/*.html` — **instrumentation-only** DOM fixtures (not loaded in normal YT Music flow)
 
@@ -31,7 +31,7 @@ Production **must not** reference paths named `mock_*`. Demo data uses neutral n
 | JVM controller | `CushionPlaybackControllerTest` |
 | Instrumentation | `run_instrumentation.py` → `YtmControllerFixtureTest` (search/play on DOM fixture) |
 
-**How verified:** Python reference (`harness/src`) and Kotlin `CushionMusicScheduler` must agree on DROP / DIRECT / bridge routes for the canon catalog. Runtime radio (**v0.9.1**) plays the LLM `search_query` directly via `NarrativeDJYtm.searchAndPlay` — cushion bridges remain a **harness-verified** capability for future wiring, not a live MainActivity catalog walk.
+**How verified:** Python reference (`harness/src`) and Kotlin `CushionMusicScheduler` must agree on DROP / DIRECT / bridge routes for the canon catalog. Runtime radio (**v0.9.3**) loads `demo_tracks.json` and inserts cushion bridge `search_query` values when both current and target resolve in the catalog; otherwise plays the LLM `search_query` directly.
 
 ## Emulator harness (local debugging)
 
@@ -84,8 +84,10 @@ SDK resolution order: `ANDROID_HOME` / `ANDROID_SDK_ROOT` → `harness/config/em
 | JSON + local edge parser | `UserRequestParserTest` (`parseLocal` = **harness-only** edge cases) |
 | Candidate pool | `CandidatePoolTest` |
 | Play history | `PlayHistoryTest` |
-| Scheduler | `RadioSchedulerTest` — pool pick + history skip |
+| Scheduler | `RadioSchedulerTest` — pool pick + history skip + catalog cushion bridges |
 | Queue policy | `RadioPlaybackPolicyTest` — defer while playing; sticky occupancy while metadata visible |
+| Waiting queue UI | `WaitingQueueFormatterTest` |
+| Leave-page | `YtmWebChromeClientTest` |
 | DJ interstitial gate | `DjInterstitialGateTest` |
 
 **Flow:** ▶ Send → Gemini parse → candidate pool → if playing, **queue**; else `searchAndPlay` → optional DJ ment on track transition.

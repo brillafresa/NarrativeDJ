@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">NarrativeDJ</string>
+    <string name="main_title">🎧 Narrative DJ</string>
     <string name="gemini_key_settings">API 키 설정</string>
     <string name="gemini_key_gate_title">Gemini API 키 필요</string>
     <string name="gemini_key_gate_message">NarrativeDJ는 Gemini API로 요청을 해석합니다. Google AI Studio에서 발급한 API 키를 입력해 주세요.</string>
@@ -11,13 +12,16 @@
     <string name="admin_console_title">관리 콘솔</string>
     <string name="admin_summary">%1$d개 지점 관리 중</string>
     <string name="admin_summary_error">기본 일정을 불러올 수 없습니다</string>
-    <string name="story_hint">곡이나 분위기를 입력하세요…</string>
+    <string name="story_hint">분위기·신청곡·하고 싶은 말을 DJ에게…</string>
     <string name="send_message">▶</string>
+    <string name="waiting_queue_prefix">대기 신청곡:</string>
+    <string name="waiting_queue_empty">대기 신청곡 없음</string>
     <string name="status_parsing_request">요청 해석 중…</string>
     <string name="status_tracks_queued">후보 %1$d곡 추가 (풀 %2$d곡)</string>
     <string name="status_mood_queued">분위기 후보 %1$d곡 추가 (풀 %2$d곡)</string>
     <string name="status_chat_noted">메시지 기억했어요 (풀 %1$d곡)</string>
     <string name="status_scheduled_play">재생 예약: %1$s</string>
+    <string name="status_cushion_play">쿠션 브릿지 %1$d곡 → %2$s</string>
     <string name="status_queued_after_current">현재 곡 다음에 재생 대기 (풀 %1$d곡)</string>
     <string name="status_now_playing_query">재생: %1$s</string>
     <string name="status_nothing_to_play">재생할 후보가 없습니다</string>

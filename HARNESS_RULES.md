@@ -65,7 +65,7 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 ## Production–harness boundary
 
 - Do **not** add `mock_*` filenames under `android/app/src/main/`.
-- Demo catalog: `assets/catalog/demo_tracks.json` (harness sync from `mock_tracks.json`; **not loaded at app runtime** — cushion parity is harness/JVM only).
+- Demo catalog: `assets/catalog/demo_tracks.json` (harness sync from `mock_tracks.json`; loaded at runtime for cushion routing when both ends match).
 - Admin demo schedule: `assets/admin/default_schedule.json` (frozen B2B/Admin scaffold).
 - WebView DOM fixtures: `assets/www/fixtures/` (instrumentation only).
 - BYOK: **Gemini API key only** in `SecureKeyStore`; never commit secrets.

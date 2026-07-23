@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.9.2` — sticky queue-after-current occupancy (live YTM QA pending on device)
+**Current release:** `0.9.3` — cushion runtime + live QA UX (device re-test pending)
 
 ## Scaffold complete (not E2E)
 
@@ -15,17 +15,17 @@
 
 ## In scope — MVP feature completion
 
-### Phase F — Radio messenger UX (v0.8.0 → v0.9.2)
+### Phase F — Radio messenger UX (v0.8.0 → v0.9.3)
 
 - [x] Single ▶ send control (Plan/Play/DJ removed)
 - [x] Gemini request parser → candidate pool + listener memory (no local production fallback)
-- [x] RadioScheduler + auto play; cushion bridges verified in harness (runtime = direct `search_query`)
+- [x] RadioScheduler + auto play; cushion bridges when both ends in demo catalog (else direct `search_query`)
 - [x] Queue-after-current policy (`RadioPlaybackPolicy`) — sticky occupancy while metadata visible (do not trust flaky `isPlaying` alone)
 - [x] DJ interstitial (random 1–2 songs) with substitute/chat context
 - [x] YTM login redirect narrowed (auth URLs allowed)
 - [x] Gemini key gate (launcher) — usable key required (`GeminiApiKeyValidator`; placeholders rejected)
 - [x] Debug live-QA seed from `local.properties` via `DebugByokSeeder` (gitignored; overwrites unusable leftovers)
-- [ ] Live YTM manual QA with send + queue-after-current flow (device — emulator audio flaky)
+- [ ] Live YTM manual QA with send + queue-after-current + cushion status (device)
 
 ### Phase A — Live YTM + WebView control
 
@@ -38,7 +38,7 @@
 - [x] `CushionPlaybackController` + catalog `search_query` (harness/JVM)
 - [x] Algorithm parity: `test_cushion_router.py` ↔ `CushionMusicSchedulerTest`
 - [x] Harness: `mock_cushion_playback.json` + unit test
-- [x] Runtime radio path uses direct YTM `search_query` (demo catalog **not** loaded)
+- [x] Runtime cushion when current + target resolve in `demo_tracks.json`; else direct YTM `search_query`
 
 ### Phase C — DJ radio loop
 
@@ -54,7 +54,7 @@
 
 ### Phase E — Release ready
 
-- [x] Version 0.9.2 bump
+- [x] Version 0.9.3 bump
 - [x] Unsigned release APK path (`assembleRelease` — local test build)
 - [ ] Signed release APK (local keystore — see [release.md](docs/release.md))
 - [ ] Full release checklist manual sign-off ([release.md](docs/release.md))

@@ -3,19 +3,19 @@
 Installable debug builds for personal sideload / emulator testing.  
 **Not** Play Store releases. Signed production APKs require local `signing.properties` (see [docs/release.md](../docs/release.md)).
 
-## Latest (v0.9.2)
+## Latest (v0.9.3)
 
 | File | Notes |
 |------|--------|
-| [NarrativeDJ-0.9.2-debug.apk](./NarrativeDJ-0.9.2-debug.apk) | Debug build from `assembleDebug` (v0.9.2 / versionCode 11) — sticky queue-after-current |
+| [NarrativeDJ-0.9.3-debug.apk](./NarrativeDJ-0.9.3-debug.apk) | Debug build from `assembleDebug` (v0.9.3 / versionCode 12) — cushion runtime + live QA UX |
 
 **Direct download (GitHub):**  
-https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.2-debug.apk
+https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.3-debug.apk
 
 ### Install
 
 ```bash
-adb install -r dist/NarrativeDJ-0.9.2-debug.apk
+adb install -r dist/NarrativeDJ-0.9.3-debug.apk
 ```
 
 Or download the file on the phone and open it (allow install from unknown sources).
@@ -33,4 +33,5 @@ cd android
 
 | File | Notes |
 |------|--------|
+| [NarrativeDJ-0.9.2-debug.apk](./NarrativeDJ-0.9.2-debug.apk) | Sticky queue-after-current (v0.9.2 / versionCode 11) |
 | [NarrativeDJ-0.9.1-debug.apk](./NarrativeDJ-0.9.1-debug.apk) | Gemini key gate usability (v0.9.1 / versionCode 10) |

@@ -3,11 +3,12 @@ package com.narrativedj.app.scheduler
 import android.os.Handler
 import android.os.Looper
 import android.webkit.WebView
+import com.narrativedj.app.webview.YtmSearchNavigation
 import org.json.JSONObject
 
 /**
  * Executes YTM search/play sequences via WebView JS API.
- * Optional [catalog] is harness-only for cushion route unit tests (buildPlayOrder).
+ * Optional [catalog] supports cushion [buildPlayOrder] / harness tests.
  */
 class CushionPlaybackController(
     private val webView: WebView? = null,
@@ -62,7 +63,9 @@ class CushionPlaybackController(
             return
         }
         val escaped = JSONObject.quote(query)
+        YtmSearchNavigation.begin()
         view.evaluateJavascript("NarrativeDJYtm.searchAndPlay($escaped);") {
+            scheduleDelayed({ YtmSearchNavigation.end() }, SEARCH_NAV_FLAG_MS)
             scheduleDelayed(
                 { playStep(queries, index + 1, onStep, onComplete) },
                 stepDelayMs,
@@ -81,6 +84,7 @@ class CushionPlaybackController(
 
     companion object {
         const val DEFAULT_STEP_DELAY_MS = 8_000L
+        private const val SEARCH_NAV_FLAG_MS = 4_000L
     }
 }
 

@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">NarrativeDJ</string>
+    <string name="main_title">🎧 Narrative DJ</string>
     <string name="gemini_key_settings">API key settings</string>
     <string name="gemini_key_gate_title">Gemini API key required</string>
     <string name="gemini_key_gate_message">NarrativeDJ uses the Gemini API to interpret your requests. Enter an API key from Google AI Studio.</string>
@@ -11,13 +12,16 @@
     <string name="admin_console_title">Admin Console</string>
     <string name="admin_summary">Managing %1$d locations</string>
     <string name="admin_summary_error">Could not load default schedule</string>
-    <string name="story_hint">Request a song or mood…</string>
+    <string name="story_hint">Mood, song request, or a note for the DJ…</string>
     <string name="send_message">▶</string>
+    <string name="waiting_queue_prefix">Waiting:</string>
+    <string name="waiting_queue_empty">No waiting requests</string>
     <string name="status_parsing_request">Parsing request…</string>
     <string name="status_tracks_queued">Added %1$d track(s) (pool: %2$d)</string>
     <string name="status_mood_queued">Added %1$d mood pick(s) (pool: %2$d)</string>
     <string name="status_chat_noted">Noted your message (pool: %1$d)</string>
     <string name="status_scheduled_play">Scheduled: %1$s</string>
+    <string name="status_cushion_play">Cushion %1$d bridge(s) → %2$s</string>
     <string name="status_queued_after_current">Queued after current track (pool: %1$d)</string>
     <string name="status_now_playing_query">Playing: %1$s</string>
     <string name="status_nothing_to_play">Nothing to play</string>

@@ -196,7 +196,12 @@ class RadioSessionController(
             candidatePool.remove(decision.targetEntry)
         }
         val summary = decision.queries.joinToString(" → ")
-        onStatus(context.getString(R.string.status_scheduled_play, summary))
+        val statusMsg = if (decision.usedCushion) {
+            context.getString(R.string.status_cushion_play, decision.bridgeCount, summary)
+        } else {
+            context.getString(R.string.status_scheduled_play, summary)
+        }
+        onStatus(statusMsg)
         cushionPlayback.playSequence(
             queries = decision.queries,
             onStep = { _, query -> onStatus(context.getString(R.string.status_now_playing_query, query)) },

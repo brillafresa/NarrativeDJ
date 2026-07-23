@@ -3,8 +3,8 @@ package com.narrativedj.app.scheduler
 import android.content.Context
 
 /**
- * Parses harness fixture track catalog JSON.
- * SSOT: harness/tests/mock_tracks.json — not loaded at app runtime.
+ * Parses track catalog JSON (SSOT: harness/tests/mock_tracks.json → assets/catalog/demo_tracks.json).
+ * Loaded at runtime for cushion bridge routing when both ends resolve in the catalog.
  */
 object TrackCatalogLoader {
     const val HARNESS_CATALOG_ASSET = "catalog/demo_tracks.json"

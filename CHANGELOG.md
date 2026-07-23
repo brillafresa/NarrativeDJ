@@ -4,6 +4,39 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.3] — 2026-07-23
+
+### Fixed
+
+- **Leave-page dialog:** auto-confirm YTM `beforeunload` during app-driven search (`YtmWebChromeClient` + search navigation flag)
+- **Background:** do not call `WebView.onPause()` on Activity pause; resume timers on `onResume` (OEM limits documented)
+- **DJ TTS:** speech rate `0.85` with ducking duration scaled to rate
+
+### Added
+
+- **Runtime cushion bridges:** load `demo_tracks.json`; when current + target resolve in catalog, play bridge queries before the request
+- Waiting-queue marquee (`대기 신청곡`) instead of duplicating now-playing in status
+- JVM harness: `CatalogMatcherTest`, `YtmWebChromeClientTest`, `WaitingQueueFormatterTest`, `DjSpeechTimingTest`; extended `RadioSchedulerTest`
+
+### Changed
+
+- Input hint + ActionBar title (`🎧 Narrative DJ`)
+- Version code 12
+
+### Harness verification (this release)
+
+| Check | Result |
+|-------|--------|
+| Cushion parity | `test_cushion_router.py` + `CushionMusicSchedulerTest` |
+| Runtime cushion schedule | `RadioSchedulerTest` bridge / direct / DROP |
+| Leave-page policy | `YtmWebChromeClientTest` |
+| TTS rate | `DjSpeechTimingTest` |
+
+### Verified (pre-push)
+
+- Python harness 6/6, `./gradlew testDebugUnitTest` PASS
+- Debug APK: [`dist/NarrativeDJ-0.9.3-debug.apk`](dist/NarrativeDJ-0.9.3-debug.apk)
+
 ## [0.9.2] — 2026-07-23
 
 ### Fixed

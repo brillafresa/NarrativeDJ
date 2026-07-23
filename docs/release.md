@@ -4,11 +4,11 @@
 
 Prebuilt **debug** APK for personal sideload / emulator (not Play Store):
 
-- **v0.9.2:** [NarrativeDJ-0.9.2-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.2-debug.apk)
+- **v0.9.3:** [NarrativeDJ-0.9.3-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.3-debug.apk)
 - Catalog: [dist/README.md](../dist/README.md)
 
 ```bash
-adb install -r dist/NarrativeDJ-0.9.2-debug.apk
+adb install -r dist/NarrativeDJ-0.9.3-debug.apk
 ```
 
 **Agent / maintainer rule:** on every **commit + push**, rebuild `assembleDebug`, copy to `dist/NarrativeDJ-<versionName>-debug.apk`, and refresh links in `README.md`, this file, and `dist/README.md` (see `.cursor/rules/commit-push-apk.mdc`).
@@ -53,19 +53,19 @@ Output: `android/app/build/outputs/apk/release/app-release.apk`
 
 If `signing.properties` is missing, `assembleRelease` builds an **unsigned** APK (suitable for local testing only).
 
-## Distribution checklist (Personal BYOK MVP v0.9.2)
+## Distribution checklist (Personal BYOK MVP v0.9.3)
 
 **Automated (pre-push):**
 
 - [x] All harness scripts pass (see [HARNESS_RULES.md](../HARNESS_RULES.md))
 - [x] `./gradlew test` green
 - [ ] Instrumentation on Pixel_8 (`ensure_emulator.py` + `run_instrumentation.py`) — optional before push; required for Release Ready
-- [x] Version bumped in `android/app/build.gradle.kts` (0.9.2 / code 11)
+- [x] Version bumped in `android/app/build.gradle.kts` (0.9.3 / code 12)
 - [x] `CHANGELOG.md` updated
 
 **Release build:**
 
-- [x] `./gradlew assembleDebug` → published under `dist/NarrativeDJ-0.9.2-debug.apk`
+- [x] `./gradlew assembleDebug` → published under `dist/NarrativeDJ-0.9.3-debug.apk`
 - [x] `./gradlew assembleRelease` succeeds (unsigned without `signing.properties`)
 - [ ] Signed release APK (`android/signing.properties` + local keystore)
 

@@ -7,10 +7,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
-import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -26,12 +26,15 @@ import com.narrativedj.app.locale.AppLocaleStore
 import com.narrativedj.app.radio.RadioScheduler
 import com.narrativedj.app.radio.RadioSessionController
 import com.narrativedj.app.radio.RequestParserService
+import com.narrativedj.app.radio.WaitingQueueFormatter
 import com.narrativedj.app.scheduler.CushionPlaybackController
+import com.narrativedj.app.scheduler.TrackCatalogLoader
 import com.narrativedj.app.service.MediaPlaybackService
 import com.narrativedj.app.service.PlaybackSessionState
 import com.narrativedj.app.webview.YtmJsBridge
 import com.narrativedj.app.webview.YtmNowPlayingParser
 import com.narrativedj.app.webview.YtmSvdReportParser
+import com.narrativedj.app.webview.YtmWebChromeClient
 import com.narrativedj.app.webview.YtmWebViewClient
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -64,6 +67,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        title = getString(R.string.main_title)
 
         djPipeline = DjPipeline(
             context = applicationContext,
@@ -74,12 +78,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         tts = TextToSpeech(this, this)
 
+        val catalog = runCatching {
+            TrackCatalogLoader.load(this)
+        }.getOrDefault(emptyList())
+
         val cushionPlayback = CushionPlaybackController(
             webView = binding.webView,
             handler = mainHandler,
+            catalog = catalog,
         )
         val requestParser = RequestParserService(keyStore)
-        val radioScheduler = RadioScheduler()
+        val radioScheduler = RadioScheduler(catalog)
         radioSession = RadioSessionController(
             context = this,
             scope = lifecycleScope,
@@ -93,6 +102,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         setupSendControl()
         setupPlaybackTransport()
+        setupWaitingQueueMarquee()
 
         binding.webView.apply {
             settings.javaScriptEnabled = true
@@ -101,7 +111,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             settings.userAgentString = settings.userAgentString.replace("; wv", "")
             addJavascriptInterface(YtmJsBridge(::onBridgeMessage), JS_BRIDGE_NAME)
-            webChromeClient = WebChromeClient()
+            webChromeClient = YtmWebChromeClient()
             webViewClient = YtmWebViewClient(this@MainActivity, ::onMusicPageReady)
             updateStatus(getString(R.string.status_loading_ytm))
             loadUrl(YTMUSIC_URL)
@@ -112,7 +122,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onResume()
         if (::keyStore.isInitialized && !keyStore.hasUsableGeminiApiKey()) {
             redirectToKeyGate()
+            return
         }
+        if (::binding.isInitialized) {
+            // Keep YTM WebView media alive across minimize/restore.
+            binding.webView.onResume()
+            binding.webView.resumeTimers()
+            refreshWaitingQueueMarquee()
+        }
+    }
+
+    override fun onPause() {
+        // Intentionally do NOT call webView.onPause() — that throttles media/timers.
+        super.onPause()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -167,11 +189,22 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun setupWaitingQueueMarquee() {
+        binding.waitingQueueText.apply {
+            ellipsize = TextUtils.TruncateAt.MARQUEE
+            isSingleLine = true
+            marqueeRepeatLimit = -1
+            isSelected = true
+        }
+        refreshWaitingQueueMarquee()
+    }
+
     private fun submitMessage() {
         val text = binding.storyInput.text?.toString().orEmpty()
         if (text.isBlank()) return
         binding.storyInput.text?.clear()
         radioSession.handleUserSend(text)
+        mainHandler.postDelayed({ refreshWaitingQueueMarquee() }, 400)
     }
 
     private fun setupPlaybackTransport() {
@@ -181,6 +214,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             override fun onPause() {
+                // Notification/headset pause only — not Activity lifecycle.
                 binding.webView.evaluateJavascript("NarrativeDJYtm.playPause(false);", null)
             }
         }
@@ -195,7 +229,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun onMusicPageReady(url: String) {
+    private fun onMusicPageReady(@Suppress("UNUSED_PARAMETER") url: String) {
         musicPageReady = true
         startPlaybackService()
         binding.webView.evaluateJavascript("NarrativeDJYtm.onPageReady();", null)
@@ -233,15 +267,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     nowPlaying.artist,
                     nowPlaying.isPlaying,
                 )
-                val poolNote = getString(R.string.status_pool_size, radioSession.candidatePool.size())
-                updateStatus(
-                    getString(
-                        R.string.status_now_playing,
-                        nowPlaying.displayLabel() + " | $poolNote",
-                    ),
-                )
             }
+            refreshWaitingQueueMarquee()
         }
+    }
+
+    private fun refreshWaitingQueueMarquee() {
+        if (!::radioSession.isInitialized || !::binding.isInitialized) return
+        val labels = WaitingQueueFormatter.labelsFromPool(radioSession.candidatePool)
+        binding.waitingQueueText.text = WaitingQueueFormatter.format(
+            prefix = getString(R.string.waiting_queue_prefix),
+            labels = labels,
+            emptyPlaceholder = getString(R.string.waiting_queue_empty),
+        )
+        binding.waitingQueueText.isSelected = true
     }
 
     private fun showGeminiKeyDialog() {
@@ -300,6 +339,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun updateStatus(message: String) {
         binding.statusText.text = message
+        refreshWaitingQueueMarquee()
     }
 
     private fun unquoteJsString(evalResult: String?): String {
