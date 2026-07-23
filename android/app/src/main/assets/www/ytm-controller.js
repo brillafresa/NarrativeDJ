@@ -276,9 +276,6 @@
     ) {
       return resumePendingSearch();
     }
-    try {
-      window.__NarrativeDJ_navigatingSearch__ = true;
-    } catch (e) {}
     window.location.href = target;
     return JSON.stringify({ ok: true, query: query, mode: "live_navigate" });
   }

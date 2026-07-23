@@ -23,12 +23,12 @@ import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.databinding.ActivityMainBinding
 import com.narrativedj.app.dj.DjPipeline
 import com.narrativedj.app.locale.AppLocaleStore
+import com.narrativedj.app.radio.CushionBridgePlannerService
 import com.narrativedj.app.radio.RadioScheduler
 import com.narrativedj.app.radio.RadioSessionController
 import com.narrativedj.app.radio.RequestParserService
 import com.narrativedj.app.radio.WaitingQueueFormatter
 import com.narrativedj.app.scheduler.CushionPlaybackController
-import com.narrativedj.app.scheduler.TrackCatalogLoader
 import com.narrativedj.app.service.MediaPlaybackService
 import com.narrativedj.app.service.PlaybackSessionState
 import com.narrativedj.app.webview.YtmJsBridge
@@ -78,22 +78,18 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         tts = TextToSpeech(this, this)
 
-        val catalog = runCatching {
-            TrackCatalogLoader.load(this)
-        }.getOrDefault(emptyList())
-
         val cushionPlayback = CushionPlaybackController(
             webView = binding.webView,
             handler = mainHandler,
-            catalog = catalog,
         )
         val requestParser = RequestParserService(keyStore)
-        val radioScheduler = RadioScheduler(catalog)
+        val radioScheduler = RadioScheduler()
         radioSession = RadioSessionController(
             context = this,
             scope = lifecycleScope,
             requestParser = requestParser,
             scheduler = radioScheduler,
+            cushionPlanner = CushionBridgePlannerService(keyStore),
             cushionPlayback = cushionPlayback,
             djPipeline = djPipeline,
             languageProvider = { AppLocaleStore.getLanguage(this) },

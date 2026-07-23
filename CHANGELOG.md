@@ -4,6 +4,32 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.4] — 2026-07-23
+
+### Changed
+
+- **Runtime cushion:** no longer depends on `demo_tracks.json`. Gemini picks the most-similar **candidate-pool** track vs now-playing; if similarity is below 0.55, invents 1–2 YTM bridge `search_query` values (A→C→B)
+- Demo catalog remains harness-only for vector algorithm parity
+- `CatalogMatcher` moved to `src/test` (not production)
+- Version code 13
+
+### Added
+
+- `mock_cushion_bridge.json`, `test_cushion_bridge_schema.py`, `CushionBridgePlanParser`, `CushionBridgePlannerService`
+
+### Harness verification (this release)
+
+| Check | Result |
+|-------|--------|
+| Vector cushion parity | `test_cushion_router.py` + `CushionMusicSchedulerTest` |
+| LLM cushion schema | `test_cushion_bridge_schema.py` + `CushionBridgePlanParserTest` |
+| Schedule apply | `RadioSchedulerTest` decisionFromPlan |
+
+### Verified (pre-push)
+
+- Python harness (incl. `test_cushion_bridge_schema.py`) + `./gradlew testDebugUnitTest` PASS
+- Debug APK: [`dist/NarrativeDJ-0.9.4-debug.apk`](dist/NarrativeDJ-0.9.4-debug.apk)
+
 ## [0.9.3] — 2026-07-23
 
 ### Fixed

@@ -78,16 +78,16 @@ android/             Production Kotlin app → APK
 
 ## Roadmap
 
-**Active (MVP v0.9.1):** [development-plan.md](development-plan.md) Phase A–F.
+**Active (MVP v0.9.4):** [development-plan.md](development-plan.md) Phase A–F.
 
-| Phase | Focus | Status (v0.9.1) |
+| Phase | Focus | Status (v0.9.4) |
 |-------|--------|-----------------|
-| A | Live YTM + WebView | Fixture green; live QA pending |
-| B | Cushion | Harness parity green; runtime = direct search |
-| C | DJ ment + ducking | Gemini + Android TTS |
-| D | Background + MediaSession | Scaffold green; 30 min QA pending |
-| E | Release ready APK | v0.9.1 bumped — signed APK + checklist pending |
-| F | Radio messenger UX | Send + queue policy; usable key gate |
+| A | Live YTM + WebView | Fixture green; leave-page auto-confirm; live QA pending |
+| B | Cushion | Vector harness parity; **runtime = LLM pool pick + invented bridges** |
+| C | DJ ment + ducking | Gemini + Android TTS (rate 0.85) |
+| D | Background + MediaSession | FGS + no WebView.onPause; OEM limits documented |
+| E | Release ready APK | v0.9.4 — signed APK + checklist pending |
+| F | Radio messenger UX | Send + sticky queue + waiting marquee + usable key gate |
 
 **Scaffold complete (research phases 1–3.1):** WebView, SVD, BYOK, profiles, i18n, B2B/Admin shells (frozen, not in menu).
 

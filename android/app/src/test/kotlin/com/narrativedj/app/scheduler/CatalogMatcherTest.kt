@@ -1,6 +1,6 @@
 /**
- * JVM harness: CatalogMatcher title / search_query / play-key resolution.
- * Fixture: src/test/resources/mock_tracks.json
+ * JVM harness: CatalogMatcher title / search_query / play-key resolution (vector catalog tests).
+ * Fixture: src/test/resources/mock_tracks.json (sync via harness/scripts/sync_fixtures.py)
  * Run: cd android && ./gradlew testDebugUnitTest --tests com.narrativedj.app.scheduler.CatalogMatcherTest
  */
 package com.narrativedj.app.scheduler

@@ -22,6 +22,8 @@
     <string name="status_chat_noted">Noted your message (pool: %1$d)</string>
     <string name="status_scheduled_play">Scheduled: %1$s</string>
     <string name="status_cushion_play">Cushion %1$d bridge(s) → %2$s</string>
+    <string name="status_planning_cushion">Picking next track and cushion path…</string>
+    <string name="status_cushion_plan_error">Cushion plan failed, playing direct: %1$s</string>
     <string name="status_queued_after_current">Queued after current track (pool: %1$d)</string>
     <string name="status_now_playing_query">Playing: %1$s</string>
     <string name="status_nothing_to_play">Nothing to play</string>

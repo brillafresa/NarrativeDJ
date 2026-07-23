@@ -14,6 +14,7 @@ Every feature implementation and bug fix **must** verify or build a harness befo
 pip install -r harness/requirements.txt
 python harness/scripts/sync_fixtures.py
 python harness/scripts/test_cushion_router.py
+python harness/scripts/test_cushion_bridge_schema.py
 python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
 python harness/scripts/test_user_request_schema.py
@@ -65,7 +66,7 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 ## Production–harness boundary
 
 - Do **not** add `mock_*` filenames under `android/app/src/main/`.
-- Demo catalog: `assets/catalog/demo_tracks.json` (harness sync from `mock_tracks.json`; loaded at runtime for cushion routing when both ends match).
+- Demo catalog: `assets/catalog/demo_tracks.json` (harness sync from `mock_tracks.json`; vector-parity / tests — runtime cushion uses LLM pool pick + invented bridge search queries).
 - Admin demo schedule: `assets/admin/default_schedule.json` (frozen B2B/Admin scaffold).
 - WebView DOM fixtures: `assets/www/fixtures/` (instrumentation only).
 - BYOK: **Gemini API key only** in `SecureKeyStore`; never commit secrets.
@@ -74,10 +75,15 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 
 ## Algorithm parity
 
-Cushion scheduler changes must pass:
+Cushion scheduler (vector reference) changes must pass:
 
 - `harness/scripts/test_cushion_router.py` (Python)
 - `android/.../CushionMusicSchedulerTest.kt` (Kotlin)
+
+Runtime LLM cushion (pool pick + invented bridges) changes must pass:
+
+- `harness/scripts/test_cushion_bridge_schema.py`
+- `CushionBridgePlanParserTest` / `RadioSchedulerTest` (decisionFromPlan)
 
 AI DJ transition schema changes must pass:
 
@@ -93,6 +99,15 @@ BYOK key usability changes must pass:
 
 - `GeminiApiKeyValidatorTest` (JVM)
 - Gate / `DebugByokSeeder` / `SecureKeyStore.hasUsableGeminiApiKey`
+
+## Cushion: harness vs production
+
+| Layer | What | Where verified |
+|-------|------|----------------|
+| **Vector reference** | Fixed `mock_tracks.json` distance math (DROP/DIRECT/bridges) | `test_cushion_router.py`, `CushionMusicSchedulerTest` |
+| **Runtime radio** | Gemini picks most-similar **pool** track; invents bridge `search_query` if similarity below threshold | `test_cushion_bridge_schema.py`, `CushionBridgePlanParserTest`, `RadioSchedulerTest` |
+
+Do **not** wire the demo catalog into MainActivity radio scheduling. Inventory: [docs/harness-inventory.md](docs/harness-inventory.md).
 
 ## Source of truth priority
 

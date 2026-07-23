@@ -3,8 +3,12 @@ package com.narrativedj.app.scheduler
 import android.content.Context
 
 /**
- * Parses track catalog JSON (SSOT: harness/tests/mock_tracks.json → assets/catalog/demo_tracks.json).
- * Loaded at runtime for cushion bridge routing when both ends resolve in the catalog.
+ * Parses track catalog JSON for cushion vector algorithms.
+ * SSOT: harness/tests/mock_tracks.json → synced to android test resources + assets/catalog/demo_tracks.json.
+ *
+ * Production MainActivity does **not** load this catalog for radio scheduling
+ * (runtime cushion = Gemini pool pick + invented bridge queries).
+ * Keep the loader in main so JVM harness tests can call [parse]/[load] against production types.
  */
 object TrackCatalogLoader {
     const val HARNESS_CATALOG_ASSET = "catalog/demo_tracks.json"
