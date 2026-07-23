@@ -36,39 +36,56 @@ class RadioSessionController(
     private var lastNowPlayingKey: String? = null
     private var pendingEntry: CandidateEntry? = null
     private var isPlayingSequence = false
+    /** Sticky occupancy — see [RadioPlaybackPolicy.nextOccupancy]. */
     private var isNowPlaying = false
+    private var idleMissCount = 0
 
     fun updateNowPlaying(title: String?, artist: String?, isPlaying: Boolean = false) {
         val label = listOfNotNull(title, artist).joinToString(" — ").ifBlank { null }
+        val occupancy = RadioPlaybackPolicy.nextOccupancy(
+            currentlyOccupied = isNowPlaying,
+            hasMetadata = label != null,
+            isPlaying = isPlaying,
+            idleMissCount = idleMissCount,
+        )
+        idleMissCount = occupancy.idleMissCount
+        val wasOccupied = isNowPlaying
+        isNowPlaying = occupancy.occupied
+
         if (label == null) {
-            isNowPlaying = false
+            // Metadata gap: keep sticky hold; only advance queue after confirmed release.
+            if (occupancy.released && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
+                scheduleNextIfNeeded()
+            }
             return
         }
 
         val playKey = CandidateEntry.normalizeKey(label)
-        val wasPlaying = isNowPlaying
-        isNowPlaying = isPlaying
 
         if (lastNowPlayingKey != null && lastNowPlayingKey != playKey && !isPlayingSequence) {
+            idleMissCount = 0
+            isNowPlaying = true
             onTrackTransition(
                 previousTitle = currentTrackTitle,
                 previousKey = lastNowPlayingKey!!,
                 newTitle = title,
                 newKey = playKey,
             )
-        } else if (pendingEntry != null && isPlaying) {
-            // First track after our search started — mark session as occupied.
+        } else if (pendingEntry != null && (isPlaying || occupancy.occupied)) {
+            // First metadata after our search started — mark session as occupied.
             currentTrackKey = playKey
             currentTrackTitle = title
             pendingEntry = null
+            idleMissCount = 0
+            isNowPlaying = true
         }
 
         lastNowPlayingKey = playKey
         currentTrackTitle = title
         currentTrackKey = playKey
 
-        // Current track stopped and queue is waiting — start next (do not interrupt while playing).
-        if (wasPlaying && !isPlaying && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
+        // Confirmed idle after sticky misses — start queued next track.
+        if (occupancy.released && wasOccupied && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
             scheduleNextIfNeeded()
         }
     }
@@ -172,6 +189,9 @@ class RadioSessionController(
         if (decision.queries.isEmpty()) return
         isPlayingSequence = true
         pendingEntry = decision.targetEntry
+        // Optimistic hold: do not start another search while this one loads/plays.
+        isNowPlaying = true
+        idleMissCount = 0
         if (decision.fromPool && decision.targetEntry != null) {
             candidatePool.remove(decision.targetEntry)
         }
@@ -182,6 +202,9 @@ class RadioSessionController(
             onStep = { _, query -> onStatus(context.getString(R.string.status_now_playing_query, query)) },
             onComplete = {
                 isPlayingSequence = false
+                // Keep occupancy sticky until now-playing polls confirm idle or track change.
+                isNowPlaying = true
+                idleMissCount = 0
                 decision.targetEntry?.playKey()?.let { currentTrackKey = it }
                 decision.targetEntry?.requestedLabel?.let { currentTrackTitle = it }
                 if (!afterTransition) {

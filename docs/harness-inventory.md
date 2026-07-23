@@ -2,7 +2,7 @@
 
 Cross-language validation assets for NarrativeDJ.  
 **Conflict priority:** see [HARNESS_RULES.md](../HARNESS_RULES.md) and [.cursorrules](../.cursorrules).  
-**Current app version:** `0.9.1`
+**Current app version:** `0.9.2`
 
 ## Production vs harness boundary
 
@@ -85,7 +85,7 @@ SDK resolution order: `ANDROID_HOME` / `ANDROID_SDK_ROOT` → `harness/config/em
 | Candidate pool | `CandidatePoolTest` |
 | Play history | `PlayHistoryTest` |
 | Scheduler | `RadioSchedulerTest` — pool pick + history skip |
-| Queue policy | `RadioPlaybackPolicyTest` — defer while playing |
+| Queue policy | `RadioPlaybackPolicyTest` — defer while playing; sticky occupancy while metadata visible |
 | DJ interstitial gate | `DjInterstitialGateTest` |
 
 **Flow:** ▶ Send → Gemini parse → candidate pool → if playing, **queue**; else `searchAndPlay` → optional DJ ment on track transition.

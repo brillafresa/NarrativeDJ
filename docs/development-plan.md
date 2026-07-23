@@ -9,8 +9,8 @@ This is the execution roadmap to reach **Release Ready** for the personal BYOK A
 
 - Harness: Python 6 scripts + `./gradlew test` — **green** (instrumentation optional)
 - MVP code: Gemini-only BYOK with **usable-key** gate + debug `local.properties` seed; radio messenger UX; queue-after-current; YTM search/play
-- Release: **v0.9.1**; unsigned `assembleRelease` OK
-- **Remaining for Release Ready:** live YTM manual QA (incl. queue handoff) + 30 min background sign-off + signed APK
+- Release: **v0.9.2**; unsigned `assembleRelease` OK
+- **Remaining for Release Ready:** live YTM manual QA on device (incl. queue handoff) + 30 min background sign-off + signed APK
 
 ## Phase overview
 
@@ -138,6 +138,13 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 ## Session handoff
 
 Update this section at the end of each work session.
+
+### Session Handoff — 2026-07-23 (v0.9.2 sticky queue-after-current)
+
+- **Last completed:** Sticky occupancy for queue-after-current (`RadioPlaybackPolicy.nextOccupancy` + optimistic hold); harness regression for metadata-sticky defer; version 0.9.2
+- **Harness status:** Python 6/6 + `./gradlew test` (incl. `RadioPlaybackPolicyTest` sticky cases)
+- **Blockers:** Device live YTM QA (emulator audio stalls); signed APK
+- **Next session:** Install `0.9.2` debug APK on device → play track → send while playing → confirm status “현재 곡 다음에 재생 대기” and no interrupt
 
 ### Session Handoff — 2026-07-23 (v0.9.1 usable Gemini key gate)
 

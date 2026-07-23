@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.9.1` — usable Gemini key gate + debug seed hygiene (live YTM QA pending)
+**Current release:** `0.9.2` — sticky queue-after-current occupancy (live YTM QA pending on device)
 
 ## Scaffold complete (not E2E)
 
@@ -15,17 +15,17 @@
 
 ## In scope — MVP feature completion
 
-### Phase F — Radio messenger UX (v0.8.0 → v0.9.1)
+### Phase F — Radio messenger UX (v0.8.0 → v0.9.2)
 
 - [x] Single ▶ send control (Plan/Play/DJ removed)
 - [x] Gemini request parser → candidate pool + listener memory (no local production fallback)
 - [x] RadioScheduler + auto play; cushion bridges verified in harness (runtime = direct `search_query`)
-- [x] Queue-after-current policy (`RadioPlaybackPolicy`) — do not interrupt playing track
+- [x] Queue-after-current policy (`RadioPlaybackPolicy`) — sticky occupancy while metadata visible (do not trust flaky `isPlaying` alone)
 - [x] DJ interstitial (random 1–2 songs) with substitute/chat context
 - [x] YTM login redirect narrowed (auth URLs allowed)
 - [x] Gemini key gate (launcher) — usable key required (`GeminiApiKeyValidator`; placeholders rejected)
 - [x] Debug live-QA seed from `local.properties` via `DebugByokSeeder` (gitignored; overwrites unusable leftovers)
-- [ ] Live YTM manual QA with send + queue-after-current flow
+- [ ] Live YTM manual QA with send + queue-after-current flow (device — emulator audio flaky)
 
 ### Phase A — Live YTM + WebView control
 
@@ -54,7 +54,7 @@
 
 ### Phase E — Release ready
 
-- [x] Version 0.9.1 bump
+- [x] Version 0.9.2 bump
 - [x] Unsigned release APK path (`assembleRelease` — local test build)
 - [ ] Signed release APK (local keystore — see [release.md](docs/release.md))
 - [ ] Full release checklist manual sign-off ([release.md](docs/release.md))

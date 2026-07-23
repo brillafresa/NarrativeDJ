@@ -4,6 +4,29 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.2] — 2026-07-23
+
+### Fixed
+
+- **Queue-after-current:** sticky playback occupancy — keep deferring while now-playing metadata is visible even when flaky YTM `isPlaying` reports false (emulator/live interrupt regression)
+- Optimistic session hold when a search/play sequence starts so mid-load sends stay in the pool
+
+### Changed
+
+- Version code 11
+
+### Harness verification (this release)
+
+| Check | Result |
+|-------|--------|
+| Queue policy + sticky occupancy | `RadioPlaybackPolicyTest` (metadata sticky / idle release) |
+| Cushion / schemas / release | Python 6 scripts + `./gradlew test` |
+
+### Verified (pre-push)
+
+- Python harness 6/6, `./gradlew testDebugUnitTest` PASS
+- Debug APK: [`dist/NarrativeDJ-0.9.2-debug.apk`](dist/NarrativeDJ-0.9.2-debug.apk)
+
 ## [0.9.1] — 2026-07-23
 
 ### Fixed
