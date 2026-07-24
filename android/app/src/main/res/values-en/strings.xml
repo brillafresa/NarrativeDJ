@@ -33,6 +33,8 @@
     <string name="status_planning_cushion">Picking next track and cushion path…</string>
     <string name="status_cushion_plan_error">Cushion plan failed, playing direct: %1$s</string>
     <string name="status_queued_after_current">Queued after current track (pool: %1$d)</string>
+    <string name="status_queued_while_paused">Paused — resume to finish current, then play queue (pool: %1$d)</string>
+    <string name="status_resuming_track">Resuming previous track…</string>
     <string name="status_now_playing_query">Playing: %1$s</string>
     <string name="status_nothing_to_play">Nothing to play</string>
     <string name="status_pool_size">Pool: %1$d</string>

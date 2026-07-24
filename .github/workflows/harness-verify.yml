@@ -30,8 +30,8 @@ jobs:
       - name: Sync fixtures
         run: python harness/scripts/sync_fixtures.py
 
-      - name: Cushion router
-        run: python harness/scripts/test_cushion_router.py
+      - name: LLM cushion bridge schema
+        run: python harness/scripts/test_cushion_bridge_schema.py
 
       - name: Selector dictionary
         run: python harness/scripts/test_selector_dictionary.py
@@ -39,8 +39,14 @@ jobs:
       - name: LLM response schema
         run: python harness/scripts/test_llm_response_schema.py
 
+      - name: User request schema
+        run: python harness/scripts/test_user_request_schema.py
+
       - name: B2B schedule schema
         run: python harness/scripts/test_b2b_schedule_schema.py
+
+      - name: No baked API key
+        run: python harness/scripts/test_no_baked_api_key.py
 
       - name: Release config scaffold
         run: python harness/scripts/verify_release_config.py

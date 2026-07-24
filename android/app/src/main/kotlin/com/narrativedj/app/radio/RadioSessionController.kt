@@ -15,6 +15,8 @@ import kotlinx.coroutines.launch
  * Next track B is chosen from the candidate pool (most similar to now-playing A via LLM).
  * If similarity is below threshold, invented bridge search queries C are played before B.
  * No fixed song catalog is required at runtime.
+ *
+ * Occupancy phases: see [RadioPlaybackPolicy] (Idle / Live / PausedUser / StalePaused).
  */
 class RadioSessionController(
     private val context: Context,
@@ -37,25 +39,41 @@ class RadioSessionController(
     private var lastNowPlayingKey: String? = null
     private var pendingEntry: CandidateEntry? = null
     private var isPlayingSequence = false
-    /** Sticky occupancy — see [RadioPlaybackPolicy.nextOccupancy]. */
-    private var isNowPlaying = false
+    private var phase: RadioPlaybackPhase = RadioPlaybackPhase.IDLE
+    private var confirmedPlaying = false
     private var idleMissCount = 0
+    private var staleResumeAttempted = false
+    private var pendingStaleResume = false
     private var isScheduling = false
+
+    /** Host should call `NarrativeDJYtm.playPause(true)` once when this returns true. */
+    fun consumeStaleResumeRequest(): Boolean {
+        if (!pendingStaleResume) return false
+        pendingStaleResume = false
+        staleResumeAttempted = true
+        return true
+    }
 
     fun updateNowPlaying(title: String?, artist: String?, isPlaying: Boolean = false) {
         val label = listOfNotNull(title, artist).joinToString(" — ").ifBlank { null }
-        val occupancy = RadioPlaybackPolicy.nextOccupancy(
-            currentlyOccupied = isNowPlaying,
+        val update = RadioPlaybackPolicy.nextPhase(
+            previousPhase = phase,
+            confirmedPlaying = confirmedPlaying,
             hasMetadata = label != null,
             isPlaying = isPlaying,
             idleMissCount = idleMissCount,
+            staleResumeAttempted = staleResumeAttempted,
         )
-        idleMissCount = occupancy.idleMissCount
-        val wasOccupied = isNowPlaying
-        isNowPlaying = occupancy.occupied
+        idleMissCount = update.idleMissCount
+        val wasOccupied = phase != RadioPlaybackPhase.IDLE
+        phase = update.phase
+        confirmedPlaying = update.confirmedPlaying
+        if (update.needsStaleResume && !staleResumeAttempted) {
+            pendingStaleResume = true
+        }
 
         if (label == null) {
-            if (occupancy.released && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
+            if (update.released && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
                 scheduleNextIfNeeded()
             }
             return
@@ -65,26 +83,28 @@ class RadioSessionController(
 
         if (lastNowPlayingKey != null && lastNowPlayingKey != playKey && !isPlayingSequence) {
             idleMissCount = 0
-            isNowPlaying = true
+            phase = RadioPlaybackPhase.LIVE
+            confirmedPlaying = true
             onTrackTransition(
                 previousTitle = currentTrackTitle,
                 previousKey = lastNowPlayingKey!!,
                 newTitle = title,
                 newKey = playKey,
             )
-        } else if (pendingEntry != null && (isPlaying || occupancy.occupied)) {
+        } else if (pendingEntry != null && (isPlaying || phase != RadioPlaybackPhase.IDLE)) {
             currentTrackKey = playKey
             currentTrackTitle = title
             pendingEntry = null
             idleMissCount = 0
-            isNowPlaying = true
+            phase = RadioPlaybackPhase.LIVE
+            confirmedPlaying = true
         }
 
         lastNowPlayingKey = playKey
         currentTrackTitle = title
         currentTrackKey = playKey
 
-        if (occupancy.released && wasOccupied && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
+        if (update.released && wasOccupied && !isPlayingSequence && pendingEntry == null && !candidatePool.isEmpty()) {
             scheduleNextIfNeeded()
         }
     }
@@ -119,9 +139,17 @@ class RadioSessionController(
     }
 
     fun scheduleNextIfNeeded() {
-        if (RadioPlaybackPolicy.shouldDeferPlayback(isPlayingSequence, pendingEntry != null, isNowPlaying)) {
-            if (!candidatePool.isEmpty() && isNowPlaying && !isPlayingSequence && pendingEntry == null) {
-                onStatus(context.getString(R.string.status_queued_after_current, candidatePool.size()))
+        if (RadioPlaybackPolicy.shouldDeferPlayback(isPlayingSequence, pendingEntry != null, phase)) {
+            if (!candidatePool.isEmpty() && !isPlayingSequence && pendingEntry == null) {
+                when (phase) {
+                    RadioPlaybackPhase.LIVE ->
+                        onStatus(context.getString(R.string.status_queued_after_current, candidatePool.size()))
+                    RadioPlaybackPhase.PAUSED_USER ->
+                        onStatus(context.getString(R.string.status_queued_while_paused, candidatePool.size()))
+                    RadioPlaybackPhase.STALE_PAUSED ->
+                        onStatus(context.getString(R.string.status_resuming_track))
+                    RadioPlaybackPhase.IDLE -> Unit
+                }
             }
             return
         }
@@ -228,7 +256,8 @@ class RadioSessionController(
         if (decision.queries.isEmpty()) return
         isPlayingSequence = true
         pendingEntry = decision.targetEntry
-        isNowPlaying = true
+        phase = RadioPlaybackPhase.LIVE
+        confirmedPlaying = true
         idleMissCount = 0
         if (decision.fromPool && decision.targetEntry != null) {
             candidatePool.remove(decision.targetEntry)
@@ -245,7 +274,8 @@ class RadioSessionController(
             onStep = { _, query -> onStatus(context.getString(R.string.status_now_playing_query, query)) },
             onComplete = {
                 isPlayingSequence = false
-                isNowPlaying = true
+                phase = RadioPlaybackPhase.LIVE
+                confirmedPlaying = true
                 idleMissCount = 0
                 decision.targetEntry?.playKey()?.let { currentTrackKey = it }
                 decision.targetEntry?.requestedLabel?.let { currentTrackTitle = it }

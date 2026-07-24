@@ -5,12 +5,12 @@
 
 This is the execution roadmap to reach **Release Ready** for the personal BYOK Android MVP.
 
-## Current baseline (2026-07-23)
+## Current baseline (2026-07-24)
 
-- Harness: Python 6 scripts + `./gradlew test` — **green** (instrumentation optional)
-- MVP code: Gemini-only BYOK with **usable-key** gate + debug `local.properties` seed; radio messenger UX; queue-after-current; YTM search/play
-- Release: **v0.9.4**; unsigned `assembleRelease` OK
-- **Remaining for Release Ready:** live YTM manual QA on device (queue + LLM cushion + background) + 30 min background sign-off + signed APK
+- Harness: Python scripts (cushion_bridge + selector + llm + user_request + b2b + no_baked_api_key + release) + `./gradlew test`
+- MVP code: Gemini-only BYOK (runtime gate; no APK bake); radio phases Idle/Live/PausedUser/StalePaused; LLM cushion; queue-after-current
+- Release: **v0.9.6**; unsigned `assembleRelease` OK
+- **Remaining for Release Ready:** live YTM manual QA on device + 30 min background sign-off + signed APK
 
 ## Phase overview
 
@@ -135,6 +135,27 @@ Recommended order: **A → B → C → F** (D can parallel after A).
 
 Update this section at the end of each work session.
 
+### Session Handoff — 2026-07-24 (v0.9.6 pre-push cleanup)
+
+- **Last completed:** Docs/CI SSOT sync; radio occupancy + no-bake key ready to ship; `test_cushion_router` removed from CI; dist APK 0.9.6 prepared for push
+- **Harness status:** Full pre-push Python set + `RadioPlaybackPolicyTest` + `./gradlew test`
+- **Blockers:** Live YTM device QA; signed APK
+- **Next session:** Device QA checklist (cold resume / pause queue / idle send); user pushes this tree
+
+### Session Handoff — 2026-07-24 (radio pause / cold resume occupancy)
+
+- **Last completed:** `RadioPlaybackPhase` Idle/Live/PausedUser/StalePaused; sticky only after confirmed playing; one-shot mid-track `playPause(true)` resume; pause/queue status strings; JVM + Python harness green
+- **Harness status:** `RadioPlaybackPolicyTest` + full `./gradlew test` + pre-push Python set PASS
+- **Blockers:** Emulator WAN may still block live YTM QA; signed APK
+- **Next session:** Device QA — (1) cold mid-stop resume (2) send while live → queue (3) send while paused → no auto-next (4) idle send → play now. Commit+push publishes `dist/` as usual.
+
+### Session Handoff — 2026-07-24 (action-plan execution + no-bake key)
+
+- **Last completed:** Pre-push Python + JVM green; Pixel_8 emulator up; `installDebug` + instrumentation 8/8 PASS; `AgentByokInjectTest` injects agent key via instrumentation args (not BuildConfig); MainActivity opens past key gate; overflow shows **Gemini 모델** menu
+- **Harness status:** Python (incl. `test_no_baked_api_key.py`) + `./gradlew test` + `run_instrumentation.py` PASS
+- **Blockers:** Emulator `eth0`/WAN still unreachable (`ping 8.8.8.8` 100% loss) → live YTM / cushion / 503 fallback QA blocked (env, not app). Signed APK still open.
+- **Next session:** Fix emulator network (or use physical device) → YTM login → model picker + cushion bridges + queue-after-current. On commit+push, publish current debug APK under `dist/` as usual (no need to scrub old APK history).
+
 ### Session Handoff — 2026-07-24 (v0.9.5 model picker + dead catalog purge)
 
 - **Last completed:** Default `gemini-3.5-flash-lite`; overflow model picker; 503 → session sticky fallback; deleted unused vector catalog stack (`test_cushion_router` / `CushionMusicScheduler` / `demo_tracks`); docs SSOT aligned to LLM cushion only
@@ -198,6 +219,7 @@ python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
 python harness/scripts/test_user_request_schema.py
 python harness/scripts/test_b2b_schedule_schema.py
+python harness/scripts/test_no_baked_api_key.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
 python harness/scripts/run_instrumentation.py

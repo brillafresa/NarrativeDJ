@@ -4,14 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import com.narrativedj.app.byok.DebugByokSeeder
 import com.narrativedj.app.byok.GeminiApiKeyValidator
 import com.narrativedj.app.byok.SecureKeyStore
 import com.narrativedj.app.databinding.ActivityGeminiKeyGateBinding
 
 /**
  * Launcher activity: blocks app use until a usable Gemini API key is stored.
- * Debug builds may auto-seed from `local.properties` via [DebugByokSeeder].
+ * Keys are entered here at runtime only — never compiled into the APK.
  */
 class GeminiKeyGateActivity : AppCompatActivity() {
 
@@ -21,7 +20,6 @@ class GeminiKeyGateActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         keyStore = SecureKeyStore(this)
-        DebugByokSeeder.seedIfNeeded(keyStore)
 
         if (keyStore.hasUsableGeminiApiKey()) {
             openMainAndFinish()

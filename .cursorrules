@@ -31,6 +31,7 @@ python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
 python harness/scripts/test_user_request_schema.py
 python harness/scripts/test_b2b_schedule_schema.py
+python harness/scripts/test_no_baked_api_key.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
 ```
@@ -61,4 +62,4 @@ When a design changes, delete unused production code, fixtures, tests, and harne
 - Add server-side music streaming or API key storage on a backend.
 - Add OpenAI/ChatGPT BYOK paths — Gemini-only.
 - Ship LLM-optional / local-parser production fallbacks — key gate is mandatory (`GeminiApiKeyValidator`).
-- Commit secrets (`local.properties` `gemini.api.key`, keystores). Debug seed for live QA only via gitignored `local.properties`.
+- Commit secrets (`local.properties`, keystores). **Never** bake API keys into debug/release APKs via `BuildConfig` — runtime `GeminiKeyGateActivity` → `SecureKeyStore` only.

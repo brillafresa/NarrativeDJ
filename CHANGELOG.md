@@ -4,6 +4,33 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.9.6] — 2026-07-24
+
+### Security
+
+- **Stop baking Gemini API keys into debug APKs.** Removed `BuildConfig.GEMINI_API_KEY` / `DebugByokSeeder`. Keys are entered only at runtime via the key gate → `SecureKeyStore`.
+- Harness: `test_no_baked_api_key.py` guards gradle + production sources; ≥0.9.6 `dist/*.apk` scanned for `AIza*` literals (≤0.9.5 skipped — no git-history scrub).
+- Optional live-QA inject: `AgentByokInjectTest` + instrumentation `-e gemini_api_key` (androidTest only; never BuildConfig).
+
+### Changed
+
+- Radio occupancy phases: **Idle / Live / PausedUser / StalePaused** — sticky metadata only after confirmed playing; cold mid-track auto-resume via `playPause(true)`; user pause does not auto-start the next pool track
+- CI Python harness aligned to current SSOT (`test_cushion_bridge_schema` + user_request + no_baked_api_key); removed deleted `test_cushion_router.py` step
+- Version code 15
+
+### Harness verification (this release)
+
+| Area | How verified |
+|------|----------------|
+| LLM cushion (pool + bridges) | `test_cushion_bridge_schema.py` + `CushionBridgePlanParserTest` / `RadioSchedulerTest` |
+| AI DJ ment schema | `test_llm_response_schema.py` + `DjAudioControlParserTest` / `LlmResponseExtractorTest` |
+| Radio occupancy | `RadioPlaybackPolicyTest` (Idle/Live/PausedUser/StalePaused) |
+| No baked API key | `test_no_baked_api_key.py` |
+| Pre-push Python set | sync + cushion_bridge + selector + llm + user_request + b2b + no_baked + release |
+| JVM | `./gradlew test` |
+
+> Do **not** restore `test_cushion_router.py` / `CushionMusicScheduler*` — superseded by LLM cushion SSOT (v0.9.5).
+
 ## [0.9.5] — 2026-07-24
 
 ### Changed

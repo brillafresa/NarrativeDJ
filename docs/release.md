@@ -4,11 +4,13 @@
 
 Prebuilt **debug** APK for personal sideload / emulator (not Play Store):
 
-- **v0.9.5:** [NarrativeDJ-0.9.5-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.5-debug.apk)
+- **v0.9.6:** [NarrativeDJ-0.9.6-debug.apk](https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-0.9.6-debug.apk)
 - Catalog: [dist/README.md](../dist/README.md)
 
+From **0.9.6** onward, newly built APKs do not embed Gemini keys (runtime key gate). Older ≤0.9.5 debug APKs may still contain a revoked baked key — no git-history scrub required; normal commit+push publishes a new versioned APK under `dist/`.
+
 ```bash
-adb install -r dist/NarrativeDJ-0.9.5-debug.apk
+adb install -r dist/NarrativeDJ-0.9.6-debug.apk
 ```
 
 **Agent / maintainer rule:** on every **commit + push**, rebuild `assembleDebug`, copy to `dist/NarrativeDJ-<versionName>-debug.apk`, and refresh links in `README.md`, this file, and `dist/README.md` (see `.cursor/rules/commit-push-apk.mdc`).
@@ -53,19 +55,19 @@ Output: `android/app/build/outputs/apk/release/app-release.apk`
 
 If `signing.properties` is missing, `assembleRelease` builds an **unsigned** APK (suitable for local testing only).
 
-## Distribution checklist (Personal BYOK MVP v0.9.4)
+## Distribution checklist (Personal BYOK MVP v0.9.6)
 
 **Automated (pre-push):**
 
-- [x] All harness scripts pass (see [HARNESS_RULES.md](../HARNESS_RULES.md))
+- [x] All harness scripts pass (see [HARNESS_RULES.md](../HARNESS_RULES.md)) — includes `test_no_baked_api_key.py`
 - [x] `./gradlew test` green
 - [ ] Instrumentation on Pixel_8 (`ensure_emulator.py` + `run_instrumentation.py`) — optional before push; required for Release Ready
-- [x] Version bumped in `android/app/build.gradle.kts` (0.9.4 / code 13)
+- [x] Version bumped in `android/app/build.gradle.kts` (0.9.6 / code 15)
 - [x] `CHANGELOG.md` updated
 
 **Release build:**
 
-- [x] `./gradlew assembleDebug` → published under `dist/NarrativeDJ-0.9.4-debug.apk`
+- [x] On commit+push: `./gradlew assembleDebug` → `dist/NarrativeDJ-0.9.6-debug.apk` + link updates (see commit-push-apk rule)
 - [x] `./gradlew assembleRelease` succeeds (unsigned without `signing.properties`)
 - [ ] Signed release APK (`android/signing.properties` + local keystore)
 

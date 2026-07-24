@@ -22,6 +22,7 @@ python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
 python harness/scripts/test_user_request_schema.py
 python harness/scripts/test_b2b_schedule_schema.py
+python harness/scripts/test_no_baked_api_key.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
 ```
@@ -73,7 +74,7 @@ Full inventory: [docs/harness-inventory.md](docs/harness-inventory.md)
 - Admin demo schedule: `assets/admin/default_schedule.json` (frozen B2B/Admin scaffold).
 - WebView DOM fixtures: `assets/www/fixtures/` (instrumentation only).
 - BYOK: **Gemini API key only** in `SecureKeyStore`; never commit secrets.
-- Debug live QA: seed from `local.properties` `gemini.api.key` via `DebugByokSeeder` (DEBUG only; gitignored).
+- **Never** bake API keys into `BuildConfig` / APKs (debug or release). Runtime gate only.
 - Gate requires a **usable** key (`GeminiApiKeyValidator`) — blank / `test-key-123` / placeholders are rejected. Instrumentation must clear prefs in `@After`.
 
 ## Algorithm parity
@@ -93,10 +94,18 @@ Radio request schema changes must pass:
 - `harness/scripts/test_user_request_schema.py`
 - `UserRequestParserTest` (JVM; includes `parseLocal` edge cases — **not** a production fallback)
 
+Radio occupancy / queue-after-current changes must pass:
+
+- `RadioPlaybackPolicyTest` (Idle / Live / PausedUser / StalePaused)
+
 BYOK key usability changes must pass:
 
 - `GeminiApiKeyValidatorTest` (JVM)
-- Gate / `DebugByokSeeder` / `SecureKeyStore.hasUsableGeminiApiKey`
+- Gate / `SecureKeyStore.hasUsableGeminiApiKey`
+- `python harness/scripts/test_no_baked_api_key.py` (no BuildConfig; ≥0.9.6 `dist/*.apk` must not contain `AIza*` literals; ≤0.9.5 skipped)
+- Optional live QA inject: `AgentByokInjectTest` with `-e gemini_api_key` (androidTest only; never BuildConfig)
+
+> **Do not restore** deleted vector-catalog harness (`test_cushion_router.py`, `CushionMusicScheduler*`).
 
 Inventory: [docs/harness-inventory.md](docs/harness-inventory.md).
 

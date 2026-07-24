@@ -1,5 +1,6 @@
 ## Copy to local.properties (gitignored). Never commit real API keys.
 sdk.dir=C\:\\Users\\YourName\\AppData\\Local\\Android\\Sdk
 
-# Optional — debug builds auto-seed SecureKeyStore on first launch
-gemini.api.key=
+# Optional human/agent reference only — NOT read by Gradle, NOT baked into APKs.
+# Enter the key at runtime in the Gemini key gate UI (or clear app data to re-enter).
+# gemini.api.key=

@@ -17,7 +17,6 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.narrativedj.app.byok.DebugByokSeeder
 import com.narrativedj.app.byok.GeminiApiKeyValidator
 import com.narrativedj.app.byok.GeminiModelStore
 import com.narrativedj.app.byok.SecureKeyStore
@@ -65,7 +64,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onCreate(savedInstanceState)
         keyStore = SecureKeyStore(this)
         modelStore = GeminiModelStore(this)
-        DebugByokSeeder.seedIfNeeded(keyStore)
         if (!keyStore.hasUsableGeminiApiKey()) {
             redirectToKeyGate()
             return
@@ -287,11 +285,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     nowPlaying.artist,
                     nowPlaying.isPlaying,
                 )
+                if (radioSession.consumeStaleResumeRequest()) {
+                    updateStatus(getString(R.string.status_resuming_track))
+                    binding.webView.evaluateJavascript("NarrativeDJYtm.playPause(true);", null)
+                }
                 PlaybackSessionState.updateNowPlaying(
                     nowPlaying.title,
                     nowPlaying.artist,
                     nowPlaying.isPlaying,
                 )
+            } else {
+                radioSession.updateNowPlaying(null, null, false)
             }
             refreshWaitingQueueMarquee()
         }

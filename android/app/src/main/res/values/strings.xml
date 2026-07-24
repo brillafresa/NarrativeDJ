@@ -33,6 +33,8 @@
     <string name="status_planning_cushion">다음 곡·쿠션 경로 고르는 중…</string>
     <string name="status_cushion_plan_error">쿠션 계획 실패, 직행 재생: %1$s</string>
     <string name="status_queued_after_current">현재 곡 다음에 재생 대기 (풀 %1$d곡)</string>
+    <string name="status_queued_while_paused">일시정지 중 — 재개 후 현재 곡이 끝나면 대기곡 재생 (풀 %1$d곡)</string>
+    <string name="status_resuming_track">이어서 재생 중…</string>
     <string name="status_now_playing_query">재생: %1$s</string>
     <string name="status_nothing_to_play">재생할 후보가 없습니다</string>
     <string name="status_pool_size">풀 %1$d곡</string>

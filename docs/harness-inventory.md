@@ -2,7 +2,7 @@
 
 Cross-language validation assets for NarrativeDJ.  
 **Conflict priority:** see [HARNESS_RULES.md](../HARNESS_RULES.md) and [.cursorrules](../.cursorrules).  
-**Current app version:** `0.9.5` (2026-07-24)
+**Current app version:** `0.9.6` (2026-07-24)
 
 ## Production vs harness boundary
 
@@ -72,9 +72,11 @@ Gemini picks the most-similar **candidate-pool** track (B) vs now-playing (A). I
 | Session 503 fallback | `GeminiModelSessionTest` |
 | Encrypted keys | `SecureKeyStoreTest` (instrumentation) — Gemini only; clears prefs in `@After` |
 | Key usability | `GeminiApiKeyValidator` + `GeminiApiKeyValidatorTest` |
+| No baked key in APK | `python harness/scripts/test_no_baked_api_key.py` |
+| Agent live-QA key inject (optional) | `AgentByokInjectTest` + instrumentation arg `gemini_api_key` (not baked into APK) |
 | Metadata | `PlaybackMetadataFormatterTest` |
 
-**Production pipeline (v0.9.5):** track transition → `DjInterstitialGate` → `DjPipeline.runTransitionMent` → **Gemini** (default `gemini-3.5-flash-lite`, menu-selectable; 503 → session sticky fallback) → **Android TTS** (rate 0.85) → `audio-ducking.js` duck in/out.
+**Production pipeline (v0.9.6):** track transition → `DjInterstitialGate` → `DjPipeline.runTransitionMent` → **Gemini** (default `gemini-3.5-flash-lite`, menu-selectable; 503 → session sticky fallback) → **Android TTS** (rate 0.85) → `audio-ducking.js` duck in/out. API key: runtime gate only (never `BuildConfig`).
 
 ## Radio messenger UX harness (Phase F)
 
@@ -86,11 +88,21 @@ Gemini picks the most-similar **candidate-pool** track (B) vs now-playing (A). I
 | Candidate pool | `CandidatePoolTest` |
 | Play history | `PlayHistoryTest` |
 | Scheduler | `RadioSchedulerTest` — pool pick + apply LLM cushion plan |
-| Queue policy | `RadioPlaybackPolicyTest` — sticky occupancy while metadata visible |
+| Queue policy | `RadioPlaybackPolicyTest` — Idle / Live / PausedUser / StalePaused (+ flaky isPlaying after confirm) |
 | Waiting queue UI | `WaitingQueueFormatterTest` |
 | DJ interstitial gate | `DjInterstitialGateTest` |
 
-**Flow:** ▶ Send → Gemini parse → candidate pool → if playing, **queue**; else plan cushion (LLM) → `searchAndPlay` sequence → optional DJ ment on track transition.
+**Flow:** ▶ Send → Gemini parse → candidate pool → phase-aware queue (Live/PausedUser/StalePaused defer; Idle starts) → LLM cushion plan → `searchAndPlay` sequence → optional DJ ment on track transition.
+
+### Cushion + AI DJ harness (how to verify)
+
+| Concern | Fixture / script | JVM |
+|---------|------------------|-----|
+| Pool pick + invented bridges | `harness/tests/mock_cushion_bridge.json` + `test_cushion_bridge_schema.py` | `CushionBridgePlanParserTest`, `RadioSchedulerTest` |
+| DJ ment audio-control JSON | `mock_llm_response.json`, `mock_dj_transition.json` + `test_llm_response_schema.py` | `DjAudioControlParserTest`, `LlmResponseExtractorTest` |
+| Occupancy phases | (policy table in JVM) | `RadioPlaybackPolicyTest` |
+
+Superseded vector catalog (`test_cushion_router.py`, `CushionMusicScheduler*`) must not be restored.
 
 ## i18n harness
 

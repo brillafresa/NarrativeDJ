@@ -21,5 +21,6 @@ Whenever the user asks to **commit and push** (or a diff-tab commit-and-push), a
    - Link form: `https://github.com/brillafresa/NarrativeDJ/raw/main/dist/NarrativeDJ-<version>-debug.apk`
 4. Include the APK + doc link updates in the **same push** (second commit is OK if the first commit already pushed — then commit docs+APK and push again).
 5. Do **not** commit `android/app/build/` or secrets (`local.properties`, `signing.properties`, keystores).
+6. **Never** bake API keys into the APK (`BuildConfig` / `gemini.api.key` gradle injection). Keys are runtime-only via the key gate. Run `python harness/scripts/test_no_baked_api_key.py` before publishing `dist/*.apk`.
 
 Until a signed release keystore is configured, publish **debug** APKs only and label them as sideload/debug in docs.

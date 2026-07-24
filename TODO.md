@@ -2,7 +2,7 @@
 
 **Scope:** [docs/project-scope.md](docs/project-scope.md)  
 **Roadmap:** [docs/development-plan.md](docs/development-plan.md)  
-**Current release:** `0.9.5` (2026-07-24) — Flash-Lite default + model picker + 503 session fallback; vector catalog harness removed
+**Current release:** `0.9.6` (2026-07-24) — no baked API keys; radio Idle/Live/PausedUser/StalePaused; LLM cushion + AI DJ harness SSOT
 
 ## Scaffold complete (not E2E)
 
@@ -15,17 +15,18 @@
 
 ## In scope — MVP feature completion
 
-### Phase F — Radio messenger UX (v0.8.0 → v0.9.4)
+### Phase F — Radio messenger UX (v0.8.0 → v0.9.6)
 
 - [x] Single ▶ send control (Plan/Play/DJ removed)
 - [x] Gemini request parser → candidate pool + listener memory (no local production fallback)
 - [x] RadioScheduler + auto play; LLM picks most-similar pool track; invents bridge search queries when similarity low (no fixed catalog)
-- [x] Queue-after-current policy (`RadioPlaybackPolicy`) — sticky occupancy while metadata visible (do not trust flaky `isPlaying` alone)
+- [x] Queue-after-current policy — Idle / Live / PausedUser / StalePaused (`RadioPlaybackPolicy`)
+- [x] Cold mid-track resume (`playPause(true)` one-shot) when YTM restores paused metadata
 - [x] DJ interstitial (random 1–2 songs) with substitute/chat context
 - [x] YTM login redirect narrowed (auth URLs allowed)
 - [x] Gemini key gate (launcher) — usable key required (`GeminiApiKeyValidator`; placeholders rejected)
-- [x] Debug live-QA seed from `local.properties` via `DebugByokSeeder` (gitignored; overwrites unusable leftovers)
-- [ ] Live YTM manual QA with send + queue-after-current + cushion status (device)
+- [x] **No compile-time API key bake** — removed `DebugByokSeeder` / `BuildConfig.GEMINI_API_KEY`
+- [ ] Live YTM manual QA with send + queue-after-current + cushion + pause/cold-resume (device)
 
 ### Phase A — Live YTM + WebView control
 
@@ -53,7 +54,7 @@
 
 ### Phase E — Release ready
 
-- [x] Version 0.9.5 bump
+- [x] Version 0.9.6 bump
 - [x] Unsigned release APK path (`assembleRelease` — local test build)
 - [ ] Signed release APK (local keystore — see [release.md](docs/release.md))
 - [ ] Full release checklist manual sign-off ([release.md](docs/release.md))
@@ -75,7 +76,7 @@ Do not implement unless [project-scope.md](docs/project-scope.md) is revised.
 
 ## Known gaps (manual QA)
 
-- Queue-after-current: automated policy unit-tested; live YTM end-of-track handoff still needs manual sign-off
+- Queue-after-current + pause/cold-resume: unit-tested phases; live YTM still needs device sign-off
 - Mood/search play: prefer Songs shelf; playlist mis-clicks reduced — re-verify on device
 - Emulator cold boot (`-no-snapshot-load`): wait for network before YTM load (`ERR_NAME_NOT_RESOLVED` = env, not app)
 
@@ -89,6 +90,7 @@ python harness/scripts/test_selector_dictionary.py
 python harness/scripts/test_llm_response_schema.py
 python harness/scripts/test_user_request_schema.py
 python harness/scripts/test_b2b_schedule_schema.py
+python harness/scripts/test_no_baked_api_key.py
 python harness/scripts/verify_release_config.py
 cd android && ./gradlew test
 python harness/scripts/ensure_emulator.py
